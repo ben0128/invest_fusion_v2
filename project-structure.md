@@ -1,4 +1,4 @@
-assets-management/
+Invest-Fusion_V2/
 ├── .env.example                # 環境變數範例
 ├── .gitignore
 ├── README.md
@@ -28,11 +28,11 @@ assets-management/
 │   │   ├── __tests__/          # Regional Workers 測試
 │   │   └── wrangler.toml
 │   │
-│   └── price-coordinator/   # Price Coordinator DO
+│   └── price-service/   # Price Service DO
 │       ├── src/
-│       │   ├── services/       # 快取邏輯
+│       │   ├── services/       # 主要邏輯
 │       │   └── utils/          # 工具函數
-│       ├── __tests__/          # 快取服務測試
+│       ├── __tests__/          # 測試
 │       └── wrangler.toml
 │
 └── shared/              # 共用程式碼

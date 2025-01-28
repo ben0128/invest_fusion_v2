@@ -9,7 +9,7 @@
     "dev:worker": "bun run workers/regional/src/index.ts",
     "build:all": "bun build ./apps/web/app/server.ts --outdir ./dist",
     "deploy:regional": "wrangler deploy -c workers/regional/wrangler.toml",
-    "deploy:coordinator": "wrangler deploy -c workers/price-coordinator/wrangler.toml",
+    "deploy:price": "wrangler deploy -c workers/price-service/wrangler.toml",
     "lint": "bunx eslint . --ext .ts,.tsx,.js,.jsx",
     "format": "bunx prettier --write .",
     "typecheck": "bun tsc --noEmit"
