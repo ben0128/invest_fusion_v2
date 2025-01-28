@@ -1,0 +1,45 @@
+{
+  "name": "invest-fusion",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun run --watch apps/web/app/server.ts",
+    "dev:web": "bun run apps/web/app/server.ts",
+    "dev:worker": "bun run workers/regional/src/index.ts",
+    "build:all": "bun build ./apps/web/app/server.ts --outdir ./dist",
+    "deploy:regional": "wrangler deploy -c workers/regional/wrangler.toml",
+    "deploy:coordinator": "wrangler deploy -c workers/price-coordinator/wrangler.toml",
+    "lint": "bunx eslint . --ext .ts,.tsx,.js,.jsx",
+    "format": "bunx prettier --write .",
+    "typecheck": "bun tsc --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "next": "14.0.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "zod": "^3.22.4",
+    "hono": "^3.11.7",
+    "ws": "^8.15.1",
+    "@binance/connector": "^3.0.0",
+    "@cloudflare/workers-types": "^4.20231218.0"
+  },
+  "devDependencies": {
+    "bun-types": "latest",
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/ws": "^8.5.10",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "eslint-config-next": "14.0.4",
+    "eslint-config-prettier": "^9.0.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.0.0",
+    "wrangler": "^3.0.0"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  }
+}
