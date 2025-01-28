@@ -5,11 +5,12 @@ compatibility_date = "2024-01-01"
 # 開發環境配置
 [dev]
 port = 8787
+local = true
 
 # 正式環境變數
 [vars]
-TWELVE_DATA_API_KEY = ""  # 將在部署時由環境變數注入
 CACHE_TTL = "300"         # 快取時效預設5分鐘
+MAX_BATCH_SIZE = "50"     # 批次處理最大數量
 
 # 測試環境變數
 [env.staging]
@@ -21,15 +22,7 @@ vars = { CACHE_TTL = "60" }  # 測試環境快取時效縮短
 name = "price-service-prod"
 vars = { CACHE_TTL = "300" }
 
-# Durable Objects 綁定
-[[durable_objects.bindings]]
-name = "PRICE_SERVICE"
-class_name = "PriceService"
 
-# 定義 Durable Objects 類別
-[[migrations]]
-tag = "v1"
-new_classes = ["PriceService"]
 
 # 資源限制配置
 [limits]

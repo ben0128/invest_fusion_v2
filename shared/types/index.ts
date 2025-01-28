@@ -1,3 +1,4 @@
+/** 資產類型列舉 */
 export enum AssetType {
   CRYPTO = 'crypto',
   BINANCE = 'binance',
@@ -5,6 +6,7 @@ export enum AssetType {
   TW_STOCK = 'tw_stock'
 }
 
+/** 資產介面定義 */
 export interface Asset {
   id: string;
   type: AssetType;
@@ -13,8 +15,16 @@ export interface Asset {
   value?: number;
 }
 
+/** 價格資料介面 */
 export interface PriceData {
   symbol: string;
   price: number;
   timestamp: number;
 } 
+
+/** Worker 環境變數綁定 */
+export type Bindings = {
+  TWELVE_DATA_API_KEY: string
+  CACHE_TTL: number
+  MAX_BATCH_SIZE: number
+}
