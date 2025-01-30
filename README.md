@@ -14,7 +14,7 @@
 ### 核心服務
 系統採用分散式架構，主要分為以下幾個部分：
 
-1. **認證與資料儲存層 (Supabase)**
+1. **認證與資料儲存層 (Firebase)**
    - 使用者認證與授權
    - 資產清單及用戶設定儲存
    - Edge Functions 處理認證觸發事件
@@ -53,10 +53,10 @@ bun.js >= 1.2.0
 
 ### 環境變數配置
 ```env
-# Supabase 配置
-SUPABASE_URL=your_supabase_url
-SUPABASE_ANON_KEY=your_supabase_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+# Firebase 配置
+FIREBASE_PROJECT_ID=your_firebase_project_id
+FIREBASE_CLIENT_EMAIL=your_firebase_client_email
+FIREBASE_PRIVATE_KEY=your_firebase_private_key
 
 # Cloudflare 配置
 CF_ACCOUNT_ID=your_cf_account_id
@@ -70,16 +70,9 @@ BINANCE_API_SECRET=your_binance_secret
 
 ## 部署指南
 
-### Supabase 部署
-1. 創建 Supabase 專案
-2. 執行資料庫遷移
-   ```bash
-   supabase db push
-   ```
-3. 部署 Edge Functions
-   ```bash
-   supabase functions deploy auth-trigger
-   ```
+### Firebase 部署
+1. 創建 Firebase 專案
+2. 部署 Edge Functions
 
 ### Cloudflare Workers 部署
 1. 部署 Regional Workers

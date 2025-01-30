@@ -13,10 +13,14 @@ Invest-Fusion_V2/
 │       ├── utils/              # 工具函數
 │       └── __tests__/          # 前端測試
 │
-├── supabase/                   # Supabase 相關
+├── firebase/                   # Firebase 相關
 │   ├── functions/              # Edge Functions
 │   │   └── auth/               # 認證相關函數
-│   └── migrations/             # 資料庫遷移
+│   │   └── db/                 # 資料庫相關函數
+│   │   └── storage/            # 儲存相關函數
+│   │   └── config/             # 配置相關函數
+│   │   └── __tests__/          # Firebase 測試
+│   └── wrangler.toml          # Cloudflare Workers 配置
 │
 ├── workers/                    # Cloudflare Workers
 │   ├── regional/               # Regional Workers (價格推送服務)
