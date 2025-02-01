@@ -2,7 +2,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { handleGetSinglePrice, handleGetBatchPrices } from './services/priceApi';
-import { Bindings } from '@shared/types';
+import { Bindings } from 'shared/types';
 
 const app = new Hono<{ Bindings: Bindings }>();
 
