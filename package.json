@@ -1,44 +1,46 @@
 {
-  "name": "invest-fusion",
-  "version": "1.0.0",
-  "type": "module",
-  "private": true,
-  "scripts": {
-    "dev": "bun run --watch apps/web/app/server.ts",
-    "dev:web": "bun run apps/web/app/server.ts",
-    "dev:worker": "wrangler dev workers/regional/src/index.ts",
-    "dev:price": "wrangler dev workers/price-service/src/services/index.ts",
-    "build:all": "bun build ./apps/web/app/server.ts --outdir ./dist",
-    "deploy:regional": "wrangler deploy -c workers/regional/wrangler.toml",
-    "deploy:price": "wrangler deploy -c workers/price-service/wrangler.toml",
-    "lint": "bunx eslint . --ext .ts,.tsx,.js,.jsx",
-    "format": "bunx prettier --write .",
-    "typecheck": "bun tsc --noEmit"
-  },
-  "dependencies": {
-    "@binance/connector": "^3.0.0",
-    "@cloudflare/workers-types": "^4.20231218.0",
-    "hono": "^3.11.7",
-    "next": "14.0.4",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "ws": "^8.15.1",
-    "zod": "^3.22.4"
-  },
-  "devDependencies": {
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
-    "@types/ws": "^8.5.10",
-    "@typescript-eslint/eslint-plugin": "^6.0.0",
-    "@typescript-eslint/parser": "^6.0.0",
-    "bun-types": "latest",
-    "eslint": "^8.0.0",
-    "eslint-config-next": "14.0.4",
-    "eslint-config-prettier": "^9.0.0",
-    "prettier": "^3.0.0",
-    "typescript": "^5.0.0"
-  },
-  "engines": {
-    "bun": ">=1.0.0"
-  }
+	"name": "invest-fusion",
+	"version": "1.0.0",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"dev": "bun run --watch apps/web/app/server.ts",
+		"dev:web": "bun run apps/web/app/server.ts",
+		"dev:worker": "wrangler dev workers/regional/src/index.ts",
+		"dev:price": "wrangler dev workers/price-service/src/index.ts",
+		"build:all": "bun build ./apps/web/app/server.ts --outdir ./dist",
+		"deploy:regional": "wrangler deploy -c workers/regional/wrangler.toml",
+		"deploy:price": "wrangler deploy -c workers/price-service/wrangler.toml",
+		"lint": "bunx eslint . --ext .ts,.tsx,.js,.jsx --fix",
+		"format": "bunx prettier --write .",
+		"typecheck": "bun tsc --noEmit"
+	},
+	"dependencies": {
+		"@binance/connector": "^3.0.0",
+		"@cloudflare/workers-types": "^4.20231218.0",
+		"hono": "^3.11.7",
+		"next": "14.0.4",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"ws": "^8.15.1",
+		"zod": "^3.22.4"
+	},
+	"devDependencies": {
+		"@types/react": "^18.2.0",
+		"@types/react-dom": "^18.2.0",
+		"@types/ws": "^8.5.10",
+		"@typescript-eslint/eslint-plugin": "^6.19.0",
+		"@typescript-eslint/parser": "^6.19.0",
+		"bun-types": "latest",
+		"eslint": "^8.56.0",
+		"eslint-config-next": "14.0.4",
+		"eslint-config-prettier": "^9.1.0",
+		"eslint-plugin-react": "^7.33.2",
+		"eslint-plugin-react-hooks": "^4.6.0",
+		"prettier": "^3.1.1",
+		"typescript": "^5.0.0"
+	},
+	"engines": {
+		"bun": ">=1.0.0"
+	}
 }

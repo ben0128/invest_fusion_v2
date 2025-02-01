@@ -22,8 +22,6 @@ vars = { CACHE_TTL = "60" }  # 測試環境快取時效縮短
 name = "price-service-prod"
 vars = { CACHE_TTL = "300" }
 
-
-
 # 資源限制配置
 [limits]
 cpu_ms = 10  # 每請求CPU時間限制
