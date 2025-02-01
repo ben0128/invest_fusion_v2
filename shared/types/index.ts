@@ -33,3 +33,13 @@ export type RawPriceData = {
 	price: number;
 };
 
+export class PriceApiError extends Error {
+	constructor(
+		message: string,
+		public readonly statusCode: number = 500,
+		public readonly symbol?: string
+	) {
+		super(message);
+		this.name = 'PriceApiError';
+	}
+}

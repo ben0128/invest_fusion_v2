@@ -1,16 +1,7 @@
 import { Context } from 'hono';
-import { PriceData, RawPriceData } from 'shared/types';
+import { PriceData, RawPriceData, PriceApiError } from 'shared/types';
 
-export class PriceApiError extends Error {
-	constructor(
-		message: string,
-		public readonly statusCode: number = 500,
-		public readonly symbol?: string
-	) {
-		super(message);
-		this.name = 'PriceApiError';
-	}
-}
+
 export class PriceApiService {
 	constructor(
 		private readonly apiUrl: string,
@@ -18,6 +9,7 @@ export class PriceApiService {
 		private readonly cacheTTL: number,
 		private readonly maxBatchSize: number,
 		private readonly cache: Cache,
+		private readonly ErrorClass: typeof PriceApiError,
 	) {}
 
 	private getCacheKey(symbol: string): string {
@@ -47,7 +39,7 @@ export class PriceApiService {
 			const data: RawPriceData = await response.json();
 
 			if (data.price === null) {
-				throw new PriceApiError(`Price not found for symbol: ${symbol}`, 404, symbol);
+				throw new this.ErrorClass(`Price not found for symbol: ${symbol}`, 404, symbol);
 			}
 
 			// 準備要快取的數據
@@ -73,8 +65,8 @@ export class PriceApiService {
 
 			return priceData;
 		} catch (error) {
-			if (error instanceof PriceApiError) throw error;
-			throw new PriceApiError(`Failed to fetch price for ${symbol}`, 500, symbol);
+			if (error instanceof this.ErrorClass) throw error;
+			throw new this.ErrorClass(`Failed to fetch price for ${symbol}`, 500, symbol);
 		}
 	}
 
@@ -142,8 +134,8 @@ export class PriceApiService {
 					results.push(priceData);
 				}
 			} catch (error) {
-				if (error instanceof PriceApiError) throw error;
-				throw new PriceApiError(`Failed to fetch batch prices for ${symbolsParam}`, 500, symbolsParam);
+				if (error instanceof this.ErrorClass) throw error;
+				throw new this.ErrorClass(`Failed to fetch batch prices for ${symbolsParam}`, 500, symbolsParam);
 			}
 		}
 
@@ -172,6 +164,7 @@ export async function handleGetSinglePrice(c: Context) {
 			c.env.CACHE_TTL,
 			c.env.MAX_BATCH_SIZE,
 			cache,
+			PriceApiError,
 		);
 
 		const data: PriceData = await priceApi.getPrice(symbol);
@@ -202,6 +195,7 @@ export async function handleGetBatchPrices(c: Context) {
 			c.env.CACHE_TTL,
 			c.env.MAX_BATCH_SIZE,
 			cache,
+			PriceApiError,
 		);
 
 		const data: PriceData[] = await priceApi.getBatchPrices(symbols);
