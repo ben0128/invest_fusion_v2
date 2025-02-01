@@ -23,7 +23,7 @@ export interface PriceData {
 }
 
 /** Worker 環境變數綁定 */
-export interface Bindings {
+export type Bindings = {
 	TWELVE_DATA_API_KEY: string;
 	CACHE_TTL: number;
 	MAX_BATCH_SIZE: number;

@@ -72,21 +72,36 @@ export class PriceApiService {
 
 	async getBatchPrices(symbols: string[]): Promise<PriceData[]> {
 		const startTime: number = Date.now();
-		const results: PriceData[] = [];
-		const missedSymbols: string[] = [];
-
-		// 先檢查快取
-		for (const symbol of symbols) {
+		
+		// 並行處理所有快取查詢
+		const cacheChecks = symbols.map(async (symbol) => {
 			const cacheKey = this.getCacheKey(symbol);
 			const cachedResponse = await this.cache.match(new Request(cacheKey));
-
 			if (cachedResponse) {
 				const cachedData: PriceData = await cachedResponse.json();
-				results.push(cachedData);
-			} else {
-				missedSymbols.push(symbol);
+				return { symbol, price: cachedData.price, cached: true };
 			}
-		}
+			return { symbol, cached: false };
+		});
+	
+		// 等待所有快取查詢完成
+		const cacheResults = await Promise.all(cacheChecks);
+		
+		// 分離快取命中和未命中的結果
+		const results: PriceData[] = [];
+		const missedSymbols: string[] = [];
+		
+		cacheResults.forEach(result => {
+			if (result.cached) {
+				results.push({
+					symbol: result.symbol,
+					price: result.price,
+					timestamp: Date.now(),
+				});
+			} else {
+				missedSymbols.push(result.symbol);
+			}
+		});
 		console.debug('missedSymbols', missedSymbols);
 
 		// 如果所有標的都命中快取，直接返回結果
@@ -95,50 +110,68 @@ export class PriceApiService {
 		}
 
 		// 如果有未命中快取的標的，進行批次 API 請求將標的分組，每組不超過 maxBatchSize
+		// 並行處理未命中快取的批次請求
+		const batchPromises = [];
 		for (let i = 0; i < missedSymbols.length; i += this.maxBatchSize) {
 			const batch = missedSymbols.slice(i, i + this.maxBatchSize);
 			const symbolsParam = batch.join(',');
-
-			try {
-				const response = await fetch(
-					`${this.apiUrl}/price?symbol=${symbolsParam}&apikey=${this.apiKey}`,
-				);
-				const data: { [key: string]: RawPriceData } = await response.json();
-
-				// 處理每個標的的回應
-				for (const symbol of batch) {
-					const price = data[symbol]?.price;
-					if (price === undefined || price === null) {
-						console.warn(`Price not found for symbol: ${symbol}`);
-						continue;
-					}
-
-					const priceData: PriceData = {
-						symbol: symbol,
-						price: price,
-						timestamp: Date.now(),
-					};
-
-					// 更新快取
-					const cacheKey: string = this.getCacheKey(symbol);
-					await this.cache.put(
-						new Request(cacheKey),
-						new Response(JSON.stringify(priceData), {
-							headers: {
-								'Content-Type': 'application/json',
-								'Cache-Control': `max-age=${this.cacheTTL}`,
-							},
-						}),
+			console.debug('symbolsParam', symbolsParam);
+			const batchPromise = (async () => {
+				try {
+					const response = await fetch(
+						`${this.apiUrl}/price?symbol=${symbolsParam}&apikey=${this.apiKey}`,
 					);
+					const data: { [key: string]: RawPriceData } = await response.json();
+					console.debug('data', data);
+					// 並行處理快取更新
+					const updatePromises = batch.map(async (symbol) => {
+						const price = data[symbol]?.price;
+						if (price === undefined || price === null) {
+							console.warn(`Price not found for symbol: ${symbol}`);
+							return null;
+						}
 
-					results.push(priceData);
+						const priceData: PriceData = {
+							symbol: symbol,
+							price: price,
+							timestamp: Date.now(),
+						};
+
+						// 更新快取
+						const cacheKey: string = this.getCacheKey(symbol);
+						await this.cache.put(
+							new Request(cacheKey),
+							new Response(JSON.stringify(priceData), {
+								headers: {
+									'Content-Type': 'application/json',
+									'Cache-Control': `max-age=${this.cacheTTL}`,
+								},
+							}),
+						);
+
+						return priceData;
+					});
+
+					const batchResults = await Promise.all(updatePromises);
+					return batchResults.filter((result): result is PriceData => result !== null);
+				} catch (error) {
+					if (error instanceof this.ErrorClass) throw error;
+					throw new this.ErrorClass(
+						`Failed to fetch batch prices for ${symbolsParam}`,
+						500,
+						symbolsParam
+					);
 				}
-			} catch (error) {
-				if (error instanceof this.ErrorClass) throw error;
-				throw new this.ErrorClass(`Failed to fetch batch prices for ${symbolsParam}`, 500, symbolsParam);
-			}
+			})();
+
+			batchPromises.push(batchPromise);
 		}
 
+		// 等待所有批次請求完成
+		const batchResults = await Promise.all(batchPromises);
+		console.debug('batchResults', batchResults);
+		results.push(...batchResults.flat());
+		console.debug('results', results);
 		const endTime: number = Date.now();
 		console.debug(
 			`Batch request completed in ${endTime - startTime}ms for ${symbols.length} symbols`,
