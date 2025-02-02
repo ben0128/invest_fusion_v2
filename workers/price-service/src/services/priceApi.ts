@@ -43,7 +43,7 @@ export class PriceApiService {
 
 			const priceData: PriceData = {
 				symbol: symbol,
-				price: data.price,
+				price: parseFloat(data.price.toString()),
 				timestamp: Date.now(),
 			};
 
@@ -60,7 +60,6 @@ export class PriceApiService {
 
 			const endTime = Date.now();
 			console.debug(`${symbol}: ${data.price}, Time taken: ${endTime - startTime}ms`);
-
 			return priceData;
 		} catch (error) {
 			if (error instanceof this.ErrorClass) throw error;
@@ -69,7 +68,6 @@ export class PriceApiService {
 	}
 
 	async getBatchPrices(symbols: string[]): Promise<PriceData[]> {
-		console.log('check2', symbols)
 		const startTime: number = Date.now();
 		
 		// 並行處理所有快取查詢

@@ -26,10 +26,8 @@ export interface PriceData {
 export interface Bindings {
 	TWELVE_DATA_API_URL: string;
 	TWELVE_DATA_API_KEY: string;
-	CACHE_TTL: number;
-	MAX_BATCH_SIZE: number;
-	CACHE: Cache;
-	PriceApiError: typeof PriceApiError;
+	CACHE_TTL: string;
+	MAX_BATCH_SIZE: string;
 }
 
 export type RawPriceData = {
@@ -53,7 +51,7 @@ export interface BatchPriceResponse {
 
 // RPC 方法定義
 export interface PriceServiceRPC {
-	getPriceBySymbol(symbol: string): Promise<number>;
+	getPriceBySymbol(symbol: string): Promise<PriceData>;
 	getBatchPrices(symbols: string[]): Promise<Record<string, number>>;
 }
 
@@ -75,4 +73,8 @@ export interface RPCResponse {
 // Fetcher 介面定義
 export interface Fetcher {
 	fetch: (input: RequestInfo, init?: RequestInit) => Promise<Response>;
+}
+
+export interface ServiceBindings {
+	PRICE_SERVICE: PriceServiceRPC;
 }
