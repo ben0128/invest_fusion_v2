@@ -1,6 +1,5 @@
 import { Context } from 'hono';
-import { PriceData, RawPriceData, PriceApiError } from 'shared/types';
-
+import { PriceData, RawPriceData, PriceApiError, BatchPriceResponse } from 'shared/types';
 
 export class PriceApiService {
 	constructor(
@@ -95,7 +94,7 @@ export class PriceApiService {
 			if (result.cached) {
 				results.push({
 					symbol: result.symbol,
-					price: result.price,
+					price: result.price ?? 0,
 					timestamp: Date.now(),
 				});
 			} else {
@@ -121,7 +120,19 @@ export class PriceApiService {
 					const response = await fetch(
 						`${this.apiUrl}/price?symbol=${symbolsParam}&apikey=${this.apiKey}`,
 					);
-					const data: { [key: string]: RawPriceData } = await response.json();
+					const rawData = await response.json();
+
+					// 如果symbolsParam 是只有一個標的，data 會是 { price: number }，需要修改成 { [symbol]: { price: 240 }}
+					let data: BatchPriceResponse;
+
+					if ('price' in rawData) {
+						// 單一價格回應
+						data = { [symbolsParam]: { price: (rawData as RawPriceData).price } };
+					} else {
+						// 多重價格回應
+						data = rawData as BatchPriceResponse;
+					}
+
 					console.debug('data', data);
 					// 並行處理快取更新
 					const updatePromises = batch.map(async (symbol) => {
@@ -169,9 +180,7 @@ export class PriceApiService {
 
 		// 等待所有批次請求完成
 		const batchResults = await Promise.all(batchPromises);
-		console.debug('batchResults', batchResults);
 		results.push(...batchResults.flat());
-		console.debug('results', results);
 		const endTime: number = Date.now();
 		console.debug(
 			`Batch request completed in ${endTime - startTime}ms for ${symbols.length} symbols`,
@@ -190,7 +199,7 @@ export async function handleGetSinglePrice(c: Context) {
 
 	try {
 		// 使用 caches.default 獲取預設的快取實例
-		const cache: Cache = caches.default;
+		const cache: Cache = (caches as unknown as { default: Cache }).default;
 		const priceApi = new PriceApiService(
 			c.env.TWELVE_DATA_API_URL,
 			c.env.TWELVE_DATA_API_KEY,
@@ -221,7 +230,7 @@ export async function handleGetBatchPrices(c: Context) {
 	}
 
 	try {
-		const cache: Cache = caches.default;
+		const cache: Cache = (caches as unknown as { default: Cache }).default;
 		const priceApi = new PriceApiService(
 			c.env.TWELVE_DATA_API_URL,
 			c.env.TWELVE_DATA_API_KEY,

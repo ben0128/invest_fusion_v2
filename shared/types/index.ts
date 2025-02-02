@@ -43,3 +43,7 @@ export class PriceApiError extends Error {
 		this.name = 'PriceApiError';
 	}
 }
+
+export interface BatchPriceResponse {
+	[symbol: string]: { price: number };
+}
