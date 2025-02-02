@@ -1,4 +1,4 @@
-import { PriceData, API_ENDPOINTS, CACHE_KEYS } from '@invest-fusion/shared';
+import { PriceData, API_ENDPOINTS, CACHE_KEYS } from 'shared';
 
 export async function fetchPrice(symbol: string): Promise<PriceData> {
 	const response = await fetch(`${API_ENDPOINTS.TWELVE_DATA}/price?symbol=${symbol}`);

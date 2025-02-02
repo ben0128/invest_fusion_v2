@@ -26,9 +26,28 @@ Invest-Fusion_V2/
 │ ├── regional/ # Regional Workers (價格推送服務)
 │ │ ├── src/
 │ │ │ ├── routes/ # API 路由
+│ │ │ │ └── ws.ts                 # WebSocket 連接入口點
 │ │ │ ├── services/ # 業務邏輯
-│ │ │ ├── ws/ # WebSocket 處理
-│ │ │ └── utils/ # 工具函數
+│ │ │ │ ├── connection/
+│ │ │ │ │ ├── wsManager.ts      # WebSocket 連接管理器
+│ │ │ │ │ └── sessionStore.ts   # 用戶會話存儲
+│ │ │ │ ├── subscription/
+│ │ │ │ │ ├── assetRegistry.ts  # 用戶資產註冊管理
+│ │ │ │ │ └── priceHub.ts       # 價格訂閱與分發中心
+│ │ │ │ └── do/
+│ │ │ │ │ ├── doClient.ts       # DO 通訊客戶端
+│ │ │ │ │ └── messageQueue.ts    # DO 消息佇列處理
+│ │ │ │ └── ws/ # WebSocket 處理
+│ │ │ │ │ ├── handlers/
+│ │ │ │ │ │ ├── assetHandler.ts   # 處理資產相關 WS 消息
+│ │ │ │ │ │ ├── authHandler.ts    # 處理認證相關 WS 消息
+│ │ │ │ │ │ └── priceHandler.ts   # 處理價格相關 WS 消息
+│ │ │ │ │ └── protocols/
+│ │ │ │ │ │ └── messageTypes.ts    # WebSocket 消息類型定義
+│ │ │ │ └── utils/ # 工具函數
+│ │ │ │ │ ├── auth.ts               # 認證相關工具
+│ │ │ │ │ ├── cache.ts             # 快取處理工具
+│ │ │ │ │ └── validation.ts        # 數據驗證工具
 │ │ ├── **tests**/ # Regional Workers 測試
 │ │ └── wrangler.toml
 │ │
