@@ -1,0 +1,13 @@
+name = "regional-worker"
+main = "src/index.ts"
+compatibility_date = "2025-01-24"
+
+
+# Service bindings 配置
+services = [
+  { binding = "PRICE_SERVICE", service = "price-service" }
+]
+
+# 開發環境配置
+[dev]
+port = 8000
