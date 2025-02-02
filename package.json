@@ -6,7 +6,7 @@
 	"scripts": {
 		"dev": "bun run --watch apps/web/app/server.ts",
 		"dev:web": "bun run apps/web/app/server.ts",
-		"dev:worker": "wrangler dev workers/regional/src/index.ts",
+		"dev:regional": "wrangler dev workers/regional/src/index.ts",
 		"dev:price": "wrangler dev workers/price-service/src/index.ts",
 		"build:all": "bun build ./apps/web/app/server.ts --outdir ./dist",
 		"deploy:regional": "wrangler deploy -c workers/regional/wrangler.toml",

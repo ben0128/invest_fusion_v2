@@ -1,19 +1,37 @@
 // 初始化, 設定環境變數, 能夠接收地區DO的標的請求,並回傳標的價格
-import { Hono } from 'hono';
-import { cors } from 'hono/cors';
-import { handleGetSinglePrice, handleGetBatchPrices } from './services/priceApi';
-import { Bindings } from 'shared/types';
+// import { cors } from 'hono/cors';
+import { Bindings, PriceApiError } from 'shared/types';
+import { PriceApiService } from './services/priceApi';
 
-const app = new Hono<{ Bindings: Bindings }>();
 
-// 啟用 CORS
-app.use('/*', cors());
+let priceService: PriceApiService;
 
-// 基本健康檢查
-app.get('/', (c) => c.text('Price Service is running!'));
+const app = {
+    // 初始化 service
+    async init(env: Bindings) {
+        priceService = new PriceApiService(
+            env.TWELVE_DATA_API_URL,
+            env.TWELVE_DATA_API_KEY,
+            parseInt(env.CACHE_TTL),
+            parseInt(env.MAX_BATCH_SIZE),
+            caches.default,
+            PriceApiError
+        );
+    },
 
-// 取得價格的端點
-app.get('/api/price', handleGetSinglePrice);
-app.post('/api/price-batch', handleGetBatchPrices);
+    // RPC 方法
+    async getBatchPrices(symbols: string[], env: Bindings) {
+        if (!priceService) {
+            await this.init(env);
+        }
+        return await priceService.getBatchPrices(symbols);
+    },
 
+    async getPriceBySymbol(symbol: string, env: Bindings) {
+        if (!priceService) {
+            await this.init(env);
+        }
+        return await priceService.getPrice(symbol);
+    }
+};
 export default app;

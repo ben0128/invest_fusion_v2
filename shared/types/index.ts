@@ -23,11 +23,12 @@ export interface PriceData {
 }
 
 /** Worker 環境變數綁定 */
-export type Bindings = {
+export interface Bindings {
+	TWELVE_DATA_API_URL: string;
 	TWELVE_DATA_API_KEY: string;
-	CACHE_TTL: number;
-	MAX_BATCH_SIZE: number;
-};
+	CACHE_TTL: string;
+	MAX_BATCH_SIZE: string;
+}
 
 export type RawPriceData = {
 	price: number;
@@ -46,4 +47,34 @@ export class PriceApiError extends Error {
 
 export interface BatchPriceResponse {
 	[symbol: string]: { price: number };
+}
+
+// RPC 方法定義
+export interface PriceServiceRPC {
+	getPriceBySymbol(symbol: string): Promise<PriceData>;
+	getBatchPrices(symbols: string[]): Promise<Record<string, number>>;
+}
+
+// RPC 請求格式
+export interface RPCRequest {
+	method: string;
+	params: any;
+}
+
+// RPC 回應格式
+export interface RPCResponse {
+	result?: any;
+	error?: {
+		code: number;
+		message: string;
+	};
+}
+
+// Fetcher 介面定義
+export interface Fetcher {
+	fetch: (input: RequestInfo, init?: RequestInit) => Promise<Response>;
+}
+
+export interface ServiceBindings {
+	PRICE_SERVICE: PriceServiceRPC;
 }

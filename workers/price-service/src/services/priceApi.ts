@@ -1,5 +1,5 @@
 import { Context } from 'hono';
-import { PriceData, RawPriceData, PriceApiError, BatchPriceResponse } from 'shared/types';
+import { PriceData, RawPriceData, PriceApiError, BatchPriceResponse, Bindings } from 'shared/types';
 
 export class PriceApiService {
 	constructor(
@@ -20,8 +20,8 @@ export class PriceApiService {
 		const cacheKey = this.getCacheKey(symbol);
 
 		try {
-			// 嘗試從快取中獲取數據
 			const cachedResponse = await this.cache.match(new Request(cacheKey));
+			
 			if (cachedResponse) {
 				const cachedData: PriceData = await cachedResponse.json();
 				const endTime = Date.now();
@@ -41,10 +41,9 @@ export class PriceApiService {
 				throw new this.ErrorClass(`Price not found for symbol: ${symbol}`, 404, symbol);
 			}
 
-			// 準備要快取的數據
 			const priceData: PriceData = {
 				symbol: symbol,
-				price: data.price,
+				price: parseFloat(data.price.toString()),
 				timestamp: Date.now(),
 			};
 
@@ -61,7 +60,6 @@ export class PriceApiService {
 
 			const endTime = Date.now();
 			console.debug(`${symbol}: ${data.price}, Time taken: ${endTime - startTime}ms`);
-
 			return priceData;
 		} catch (error) {
 			if (error instanceof this.ErrorClass) throw error;
@@ -85,7 +83,6 @@ export class PriceApiService {
 	
 		// 等待所有快取查詢完成
 		const cacheResults = await Promise.all(cacheChecks);
-		
 		// 分離快取命中和未命中的結果
 		const results: PriceData[] = [];
 		const missedSymbols: string[] = [];
@@ -190,65 +187,8 @@ export class PriceApiService {
 	}
 }
 
-export async function handleGetSinglePrice(c: Context) {
-	const symbol = c.req.query('symbol');
-
-	if (!symbol) {
-		return c.json({ error: 'Symbol is required' }, 400);
-	}
-
-	try {
-		// 使用 caches.default 獲取預設的快取實例
-		const cache: Cache = (caches as unknown as { default: Cache }).default;
-		const priceApi = new PriceApiService(
-			c.env.TWELVE_DATA_API_URL,
-			c.env.TWELVE_DATA_API_KEY,
-			c.env.CACHE_TTL,
-			c.env.MAX_BATCH_SIZE,
-			cache,
-			PriceApiError,
-		);
-
-		const data: PriceData = await priceApi.getPrice(symbol);
-		return c.json(data);
-	} catch (error) {
-		return errorHandler(c, error);
-	}
-}
-
-export async function handleGetBatchPrices(c: Context) {
-	const payload = await c.req.json();
-
-	if (!Array.isArray(payload.symbols)) {
-		return c.json({ error: 'Request body must contain a symbols array' }, 400);
-	}
-
-	const symbols: string[] = payload.symbols.map((s: string) => s.trim()).filter(Boolean);
-
-	if (symbols.length === 0) {
-		return c.json({ error: 'At least one symbol is required' }, 400);
-	}
-
-	try {
-		const cache: Cache = (caches as unknown as { default: Cache }).default;
-		const priceApi = new PriceApiService(
-			c.env.TWELVE_DATA_API_URL,
-			c.env.TWELVE_DATA_API_KEY,
-			c.env.CACHE_TTL,
-			c.env.MAX_BATCH_SIZE,
-			cache,
-			PriceApiError,
-		);
-
-		const data: PriceData[] = await priceApi.getBatchPrices(symbols);
-		return c.json(data);
-	} catch (error) {
-		return errorHandler(c, error);
-	}
-}
-
 // 統一的錯誤處理
-async function errorHandler(c: Context, error: unknown) {
+export async function errorHandler(c: Context, error: unknown) {
 	if (error instanceof PriceApiError) {
 		return c.json({ error: error.message, symbol: error.symbol }, error.statusCode);
 	}
