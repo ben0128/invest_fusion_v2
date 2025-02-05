@@ -1,13 +1,29 @@
 name = "regional-worker"
-main = "src/index.ts"
+main = "../../dist/workers/regional/src/index.js"
 compatibility_date = "2025-01-24"
 
 
 # Service bindings 配置
-services = [
-  { binding = "PRICE_SERVICE", service = "price-service" }
-]
+
+[[services]]
+binding = "PRICE_SERVICE"  # 這是在程式中使用的名稱
+service = "price-service"  # 這必須與 price-service worker 的 name 一致
+
+# wrangler.toml (wrangler v3.88.0^)
+[observability.logs]
+enabled = true
+
+
+
+
 
 # 開發環境配置
 [dev]
 port = 8000
+
+[vars]
+CACHE_TTL = "300"
+MAX_BATCH_SIZE = "10"
+
+[env.production]
+vars = { ENVIRONMENT = "production" }

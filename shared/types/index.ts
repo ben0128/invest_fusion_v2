@@ -19,7 +19,7 @@ export interface Asset {
 export interface PriceData {
 	symbol: string;
 	price: number;
-	timestamp: number;
+	timestamp?: number;
 }
 
 /** Worker 環境變數綁定 */

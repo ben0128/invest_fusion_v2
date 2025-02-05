@@ -2,6 +2,8 @@ import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { ServiceBindings } from 'shared/types';
 
+import { Edge_Cache_Config } from 'shared/constants';
+
 const app = new Hono();
 
 // 啟用 CORS
@@ -15,6 +17,17 @@ app.get('/api/price', async (c) => {
 	}
 
 	try {
+		const cacheKey = new Request(Edge_Cache_Config.getCacheKey(symbol));
+
+        const cache = await caches.open(Edge_Cache_Config.NAMESPACE);
+        const cachedResponse = await cache.match(cacheKey);
+
+        if (cachedResponse) {
+            const cachedData = await cachedResponse.json();
+            console.log('Cached data:', cachedData);
+            return cachedResponse;
+        }
+
 		const res = await (c.env as unknown as ServiceBindings).PRICE_SERVICE.getPriceBySymbol(symbol);
         if (res.price) {
             return c.json(res);

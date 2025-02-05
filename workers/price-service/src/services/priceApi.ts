@@ -1,7 +1,12 @@
-import { Context } from 'hono';
-import { PriceData, RawPriceData, PriceApiError, BatchPriceResponse, Bindings } from 'shared/types';
+
+import { DurableObjectStorage } from '@cloudflare/workers-types';
+import { PriceData, RawPriceData, PriceApiError, BatchPriceResponse } from 'shared/types';
+import { Edge_Cache_Config } from 'shared/constants';
 
 export class PriceApiService {
+	// private priceStore: DurableObjectStorage;
+    // private subscribers: Set<string> = new Set(); // 儲存訂閱的 Regional DO ID
+	
 	constructor(
 		private readonly apiUrl: string,
 		private readonly apiKey: string,
@@ -9,19 +14,56 @@ export class PriceApiService {
 		private readonly maxBatchSize: number,
 		private readonly cache: Cache,
 		private readonly ErrorClass: typeof PriceApiError,
-	) {}
-
-	private getCacheKey(symbol: string): string {
-		return `https://api.price-cache.local/prices/${symbol.toUpperCase()}`;
+		// storage: DurableObjectStorage,
+	) {
+		// this.priceStore = storage;
 	}
+	
+	// 新增訂閱管理方法
+	// async addSubscriber(regionalDoId: string) {
+	// 	this.subscribers.add(regionalDoId);
+	// 	// 將訂閱者資訊持久化儲存
+	// 	await this.priceStore.put('subscribers', Array.from(this.subscribers));
+	// }
+
+	// async removeSubscriber(regionalDoId: string) {
+	// 	this.subscribers.delete(regionalDoId);
+	// 	await this.priceStore.put('subscribers', Array.from(this.subscribers));
+	// }
+
+	// 修改現有的價格更新邏輯，加入推送機制
+	// private async notifyPriceChange(priceData: PriceData) {
+	// 	// 取得所有訂閱者
+	// 	const subscribers = await this.priceStore.get('subscribers') as string[];
+		
+	// 	// 向所有訂閱的 Regional DO 推送更新
+	// 	const notifications = subscribers.map(async (regionalDoId) => {
+	// 		const regionalDoStub = await this.env.REGIONAL_DO.get(
+	// 			this.env.REGIONAL_DO.idFromString(regionalDoId)
+	// 		);
+			
+	// 		await regionalDoStub.fetch('http://internal/price-update', {
+	// 			method: 'POST',
+	// 			body: JSON.stringify(priceData)
+	// 		});
+	// 	});
+
+	// 	await Promise.all(notifications);
+	// }
 
 	async getPrice(symbol: string): Promise<PriceData> {
 		const startTime = Date.now();
-		const cacheKey = this.getCacheKey(symbol);
-
+		const cacheKey = new Request(Edge_Cache_Config.getCacheKey(symbol));
+		const cache: Cache = this.cache;
 		try {
-			const cachedResponse = await this.cache.match(new Request(cacheKey));
-			
+
+			// 加入更詳細的除錯日誌
+			console.log('Checking cache for symbol:', symbol);
+			console.log('Cache key:', Edge_Cache_Config.getCacheKey(symbol));
+
+			const cachedResponse = await cache.match(cacheKey);
+			console.log('Cached response exists:', !!cachedResponse);
+
 			if (cachedResponse) {
 				const cachedData: PriceData = await cachedResponse.json();
 				const endTime = Date.now();
@@ -37,19 +79,21 @@ export class PriceApiService {
 			);
 			const data: RawPriceData = await response.json();
 
-			if (data.price === null) {
+			if (!data || data.price === null) {
 				throw new this.ErrorClass(`Price not found for symbol: ${symbol}`, 404, symbol);
 			}
 
 			const priceData: PriceData = {
 				symbol: symbol,
-				price: parseFloat(data.price.toString()),
+
+				price: data.price ?? 0,
+
 				timestamp: Date.now(),
 			};
 
 			// 存入快取
 			await this.cache.put(
-				new Request(cacheKey),
+				cacheKey,
 				new Response(JSON.stringify(priceData), {
 					headers: {
 						'Content-Type': 'application/json',
@@ -67,12 +111,13 @@ export class PriceApiService {
 		}
 	}
 
+	// 批量獲取價格, 一次傳入多個標的時, 會先檢查快取, 如果快取中沒有, 則會進行批次 API 請求將標的分組，每組不超過 maxBatchSize
 	async getBatchPrices(symbols: string[]): Promise<PriceData[]> {
 		const startTime: number = Date.now();
 		
 		// 並行處理所有快取查詢
 		const cacheChecks = symbols.map(async (symbol) => {
-			const cacheKey = this.getCacheKey(symbol);
+			const cacheKey = Edge_Cache_Config.getCacheKey(symbol);
 			const cachedResponse = await this.cache.match(new Request(cacheKey));
 			if (cachedResponse) {
 				const cachedData: PriceData = await cachedResponse.json();
@@ -89,7 +134,7 @@ export class PriceApiService {
 		
 		cacheResults.forEach(result => {
 			if (result.cached) {
-				results.push({
+				results.push(<PriceData>{
 					symbol: result.symbol,
 					price: result.price ?? 0,
 					timestamp: Date.now(),
@@ -141,12 +186,12 @@ export class PriceApiService {
 
 						const priceData: PriceData = {
 							symbol: symbol,
-							price: price,
+							price: price ?? 0,
 							timestamp: Date.now(),
 						};
 
 						// 更新快取
-						const cacheKey: string = this.getCacheKey(symbol);
+						const cacheKey: string = Edge_Cache_Config.getCacheKey(symbol);
 						await this.cache.put(
 							new Request(cacheKey),
 							new Response(JSON.stringify(priceData), {
@@ -177,7 +222,9 @@ export class PriceApiService {
 
 		// 等待所有批次請求完成
 		const batchResults = await Promise.all(batchPromises);
+		console.debug('batchResults', batchResults);
 		results.push(...batchResults.flat());
+		console.debug('results', results);
 		const endTime: number = Date.now();
 		console.debug(
 			`Batch request completed in ${endTime - startTime}ms for ${symbols.length} symbols`,
@@ -185,12 +232,4 @@ export class PriceApiService {
 
 		return results;
 	}
-}
-
-// 統一的錯誤處理
-export async function errorHandler(c: Context, error: unknown) {
-	if (error instanceof PriceApiError) {
-		return c.json({ error: error.message, symbol: error.symbol }, error.statusCode);
-	}
-	return c.json({ error: 'Internal Server Error' }, 500);
 }
