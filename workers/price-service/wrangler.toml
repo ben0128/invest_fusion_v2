@@ -1,15 +1,21 @@
 name = "price-service"
-main = "src/index.ts"
+main = "../../dist/workers/price-service/src/index.js"
 compatibility_date = "2025-01-24"
 
 # 開發環境配置
 [dev]
 port = 8100
 
+# wrangler.toml (wrangler v3.88.0^)
+[observability.logs]
+enabled = true
+
 # 正式環境變數
 [vars]
 CACHE_TTL = "10"         # 快取時效, 單位:秒
 MAX_BATCH_SIZE = "50"     # 批次處理最大數量
+TWELVE_DATA_API_URL = "https://api.twelvedata.com"
+TWELVE_DATA_API_KEY = "55a57a940a4945ea8c9724bdf11ff0f8"
 
 # 測試環境變數
 [env.staging]
@@ -18,8 +24,7 @@ vars = { CACHE_TTL = "10" }  # 測試環境快取時效縮短
 
 # 正式環境
 [env.production]
-name = "price-service-prod"
-vars = { CACHE_TTL = "10" }
+vars = { ENVIRONMENT = "production" }
 
 # 資源限制配置
 [limits]

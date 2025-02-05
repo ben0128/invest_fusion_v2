@@ -78,15 +78,3 @@ export interface Fetcher {
 export interface ServiceBindings {
 	PRICE_SERVICE: PriceServiceRPC;
 }
-
-export const CACHE_CONFIG = {
-    NAMESPACE: 'prices',
-    KEY_PREFIX: 'https://api.invest-fusion.com/prices',
-    TTL: 10,
-    getCacheKey: (symbol: string) => `${CACHE_CONFIG.KEY_PREFIX}/${symbol.toUpperCase()}`,
-    getHeaders: () => ({
-        'Content-Type': 'application/json',
-        'Cache-Control': `max-age=${CACHE_CONFIG.TTL}`,
-        'Cache-Tag': 'prices',
-    })
-};

@@ -9,3 +9,14 @@ export const CACHE_KEYS = {
 	PRICES: 'prices',
 	ASSETS: 'assets',
 } as const;
+
+export const Edge_Cache_Config = {
+    NAMESPACE: 'prices',
+    KEY_PREFIX: 'https://api.invest-fusion.com/prices',
+    TTL: 10,
+    getCacheKey: (symbol: string) => `${Edge_Cache_Config.KEY_PREFIX}/${symbol.toUpperCase()}`,
+    getHeaders: () => ({
+        'Content-Type': 'application/json',
+        'Cache-Control': `max-age=${Edge_Cache_Config.TTL}`,
+    })
+};

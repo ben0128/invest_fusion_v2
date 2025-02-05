@@ -94,10 +94,6 @@ BINANCE_API_SECRET=your_binance_secret
     ```bash
     wrangler deploy src/workers/price-service.js
     ```
-3. 配置 Worker Cache
-    ```bash
-    wrangler kv:namespace create "PRICE_CACHE"
-    ```
 
 ## 本地開發
 
