@@ -1,6 +1,8 @@
+
 import { DurableObjectStorage } from '@cloudflare/workers-types';
 import { PriceData, RawPriceData, PriceApiError, BatchPriceResponse } from 'shared/types';
 import { Edge_Cache_Config } from 'shared/constants';
+
 export class PriceApiService {
 	// private priceStore: DurableObjectStorage;
     // private subscribers: Set<string> = new Set(); // 儲存訂閱的 Regional DO ID
@@ -54,13 +56,14 @@ export class PriceApiService {
 		const cacheKey = new Request(Edge_Cache_Config.getCacheKey(symbol));
 		const cache: Cache = this.cache;
 		try {
+
 			// 加入更詳細的除錯日誌
 			console.log('Checking cache for symbol:', symbol);
 			console.log('Cache key:', Edge_Cache_Config.getCacheKey(symbol));
 
 			const cachedResponse = await cache.match(cacheKey);
 			console.log('Cached response exists:', !!cachedResponse);
-						
+
 			if (cachedResponse) {
 				const cachedData: PriceData = await cachedResponse.json();
 				const endTime = Date.now();
@@ -82,7 +85,9 @@ export class PriceApiService {
 
 			const priceData: PriceData = {
 				symbol: symbol,
+
 				price: data.price ?? 0,
+
 				timestamp: Date.now(),
 			};
 

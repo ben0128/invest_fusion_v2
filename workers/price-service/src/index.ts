@@ -3,6 +3,7 @@
 import { Bindings, PriceApiError } from 'shared/types';
 import { PriceApiService } from './services/priceApi';
 
+
 let priceService: PriceApiService;
 
 const app = {
@@ -23,11 +24,14 @@ const app = {
     // RPC 方法
     async getBatchPrices(symbols: string[], env: Bindings) {
         await this.init(env);
+
         return await priceService.getBatchPrices(symbols);
     },
 
     async getPriceBySymbol(symbol: string, env: Bindings) {
+
         await this.init(env);
+
         return await priceService.getPrice(symbol);
     }
 };

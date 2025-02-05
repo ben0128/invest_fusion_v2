@@ -1,5 +1,7 @@
 name = "price-service"
+
 main = "../../dist/workers/price-service/src/index.js"
+
 compatibility_date = "2025-01-24"
 
 # 開發環境配置
@@ -13,6 +15,7 @@ enabled = true
 # 正式環境變數
 [vars]
 CACHE_TTL = "10"         # 快取時效, 單位:秒
+
 MAX_BATCH_SIZE = "50"     # 批次處理最大數量
 TWELVE_DATA_API_URL = "https://api.twelvedata.com"
 TWELVE_DATA_API_KEY = "55a57a940a4945ea8c9724bdf11ff0f8"
@@ -24,7 +27,9 @@ vars = { CACHE_TTL = "10" }  # 測試環境快取時效縮短
 
 # 正式環境
 [env.production]
+
 vars = { ENVIRONMENT = "production" }
+
 
 # 資源限制配置
 [limits]

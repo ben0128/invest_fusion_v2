@@ -4,6 +4,7 @@ compatibility_date = "2025-01-24"
 
 
 # Service bindings 配置
+
 [[services]]
 binding = "PRICE_SERVICE"  # 這是在程式中使用的名稱
 service = "price-service"  # 這必須與 price-service worker 的 name 一致
