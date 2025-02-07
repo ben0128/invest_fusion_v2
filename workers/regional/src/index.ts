@@ -121,48 +121,67 @@
 // export default app;
 /////////////////////////////////////
 
-import { hc } from "hono/client";
-import type { AppType } from "../../price-service/src/index";
-import { Hono } from "hono";
+// import { hc } from "hono/client";
+// import type { AppType } from "../../price-service/src/index";
+// import { Hono } from "hono";
+
+// const app = new Hono();
+
+// app.get("/", async (c) => {
+//     console.log('開始處理請求');
+//     try {
+//         // const client = hc<AppType>(c.env.PRICE_SERVICE_URL);
+// 		const response = await c.env.PRICE_SERVICE.fetch(new Request('http://localhost:8100/book'));
+//         console.log('response', response);
+// 		const data = await response.json();
+//         console.log('Price Service URL:', c.env.PRICE_SERVICE_URL);
+        
+//         // const res = await client.book.$get();
+//         console.log('Response status:', data);
+        
+//         // 檢查回應狀態
+//         if (!response.ok) {
+//             const errorText = await response.text();
+//             console.error('API 錯誤回應:', errorText);
+//             return c.json({ error: '服務請求失敗', details: errorText }, 500);
+//         }
+        
+//         try {
+//             // const data = await response.json();
+//             console.log('成功解析的數據:', data);
+//             return c.json(data);
+//         } catch (parseError) {
+//             const rawText = await response.text();
+//             console.error('JSON 解析錯誤:', parseError);
+//             console.error('原始回應內容:', rawText);
+//             return c.json({ error: 'JSON 解析失敗', rawResponse: rawText }, 500);
+//         }
+//     } catch (error) {
+//         console.error('請求處理錯誤:', error);
+//         return c.json({
+//             error: '內部服務錯誤',
+//             message: error instanceof Error ? error.message : '未知錯誤'
+//         }, 500);
+//     }
+// });
+
+// export default app;
+
+import { hc } from 'hono/client';
+import type { AppType } from '../../price-service/src/index';
+import { Hono } from 'hono';
 
 const app = new Hono();
 
 app.get("/", async (c) => {
-    console.log('開始處理請求');
-    try {
-        // const client = hc<AppType>(c.env.PRICE_SERVICE_URL);
-		const response = await c.env.PRICE_SERVICE.fetch(new Request('http://localhost:8100/book'));
-        console.log('response', response);
-		const data = await response.json();
-        console.log('Price Service URL:', c.env.PRICE_SERVICE_URL);
-        
-        // const res = await client.book.$get();
-        console.log('Response status:', data);
-        
-        // 檢查回應狀態
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('API 錯誤回應:', errorText);
-            return c.json({ error: '服務請求失敗', details: errorText }, 500);
-        }
-        
-        try {
-            // const data = await response.json();
-            console.log('成功解析的數據:', data);
-            return c.json(data);
-        } catch (parseError) {
-            const rawText = await response.text();
-            console.error('JSON 解析錯誤:', parseError);
-            console.error('原始回應內容:', rawText);
-            return c.json({ error: 'JSON 解析失敗', rawResponse: rawText }, 500);
-        }
-    } catch (error) {
-        console.error('請求處理錯誤:', error);
-        return c.json({
-            error: '內部服務錯誤',
-            message: error instanceof Error ? error.message : '未知錯誤'
-        }, 500);
-    }
+    const client = hc<AppType>('http://localhost:8100');
+	// 調用 RPC 方法
+	const response = await client.price.$get({
+		query: { symbol: 'AAPL', market: 'stock' }
+	});
+	console.log('response', response)
+	// console.log('response', await response.json())
+return c.json(response);
 });
 
 export default app;

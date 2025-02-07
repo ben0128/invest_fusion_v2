@@ -131,12 +131,35 @@
 //     }
 // };
 
-import { Hono } from "hono";
-import bookRoute from "./book";
+// import { Hono } from "hono";
+// import bookRoute from "./book";
+// const app = new Hono();
+
+// console.log('check 1')
+// const route = app.route("/book", bookRoute);
+
+// export type AppType = typeof route;
+// export default app;
+
+import { Hono } from 'hono';
+import { zValidator } from '@hono/zod-validator';
+import { z } from 'zod';
+
 const app = new Hono();
 
-console.log('check 1')
-const route = app.route("/book", bookRoute);
+// 定義 RPC 風格的路由
+const priceRoute = new Hono()
+  .get('/', zValidator('query', z.object({
+    symbol: z.string(),
+    market: z.enum(['crypto', 'stock'])
+  }), (c) => {
+    // const { symbol, market } = c.req.query();
+    console.log('check 2', c.data)
+    // 處理價格查詢邏輯
+    return c.data;
+  })
+  )
+app.route('/price', priceRoute);
 
-export type AppType = typeof route;
+export type AppType = typeof app;
 export default app;
