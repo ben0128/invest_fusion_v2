@@ -24,10 +24,10 @@ export interface PriceData {
 
 /** Worker 環境變數綁定 */
 export interface Bindings {
-	TWELVE_DATA_API_URL: string;
-	TWELVE_DATA_API_KEY: string;
-	CACHE_TTL: string;
-	MAX_BATCH_SIZE: string;
+	TWELVE_DATA_API_URL?: string;
+	TWELVE_DATA_API_KEY?: string;
+	CACHE_TTL?: string;
+	MAX_BATCH_SIZE?: string;
 }
 
 export type RawPriceData = {

@@ -1,41 +1,99 @@
-// 初始化, 設定環境變數, 能夠接收地區DO的標的請求,並回傳標的價格
+// // 初始化, 設定環境變數, 能夠接收地區DO的標的請求,並回傳標的價格
+// import { Hono } from 'hono';
 // import { cors } from 'hono/cors';
-import { Bindings, PriceApiError } from 'shared/types';
-import { PriceApiService } from './services/priceApi';
+// import { Bindings, PriceApiError } from 'shared/types';
+// import { PriceApiService } from './services/priceApi';
+// import { z } from 'zod';
+// import { zValidator } from '@hono/zod-validator';  // 添加這行
 
 
-let priceService: PriceApiService;
+// const app = new Hono<{ Bindings: Bindings }>();
+// app.use('/*', cors());
 
-const app = {
-    // 初始化 service
-    async init(env: Bindings) {
-        if (!priceService) {
-            priceService = new PriceApiService(
-                env.TWELVE_DATA_API_URL,
-                env.TWELVE_DATA_API_KEY,
-                parseInt(env.CACHE_TTL),
-                parseInt(env.MAX_BATCH_SIZE),
-                caches.default,
-                PriceApiError
-            );
-        }
-    },
+// // 定義路由
+// app.get('/posts', 
+//     zValidator('query', z.object({
+//         symbol: z.string()
+//     })),
+//     async (c) => {
+//         const { symbol } = c.req.valid('query');
+//         console.log('Received symbol:', symbol);
+        
+//         return c.json({
+//             ok: true,
+//             data: { symbol }
+//         }, 200);
+//     }
+// );
 
-    // RPC 方法
-    async getBatchPrices(symbols: string[], env: Bindings) {
-        await this.init(env);
+// // 添加錯誤處理中間件
+// app.onError((err, c) => {
+//     console.error('Error:', err);
+//     return c.json({
+//         ok: false,
+//         message: err.message
+//     }, err instanceof PriceApiError ? err.status : 500);
+// });
 
-        return await priceService.getBatchPrices(symbols);
-    },
+// export type AppType = typeof app;
+// export default app;
+// const route = app.post(
+// 	'/posts',
+// 	zValidator(
+// 		'json',
+// 		z.object({
+// 			title: z.string(),
+// 			body: z.string(),
+// 		}),
+// 	),
+// 	(c) => {
+//         const data = c.req.valid('json');
+//         console.log('Received data:', data);
+// 		return c.json(
+// 			{
+// 				ok: true,
+// 				message: 'Created!',
+//                 data: data
+// 			},
+// 			201,
+// 		);
+// 	},
+// );
 
-    async getPriceBySymbol(symbol: string, env: Bindings) {
+// export type AppType = typeof route
 
-        await this.init(env);
+// let priceService: PriceApiService;
 
-        return await priceService.getPrice(symbol);
-    }
-};
-export default app;
+// const app = {
+//     // 初始化 service
+//     async init(env: Bindings) {
+//         if (!priceService) {
+//             priceService = new PriceApiService(
+//                 env.TWELVE_DATA_API_URL,
+//                 env.TWELVE_DATA_API_KEY,
+//                 parseInt(env.CACHE_TTL),
+//                 parseInt(env.MAX_BATCH_SIZE),
+//                 caches.default,
+//                 PriceApiError
+//             );
+//         }
+//     },
+
+//     // RPC 方法
+//     async getBatchPrices(symbols: string[], env: Bindings) {
+//         await this.init(env);
+
+//         return await priceService.getBatchPrices(symbols);
+//     },
+
+//     async getPriceBySymbol(symbol: string, env: Bindings) {
+
+//         await this.init(env);
+
+//         return await priceService.getPrice(symbol);
+//     }
+// };
+// export default app;
 // 添加 fetch 處理器
 // export default {
 //     async fetch(request: Request, env: Bindings, ctx: ExecutionContext) {
@@ -72,3 +130,13 @@ export default app;
 //         }
 //     }
 // };
+
+import { Hono } from "hono";
+import bookRoute from "./book";
+const app = new Hono();
+
+console.log('check 1')
+const route = app.route("/book", bookRoute);
+
+export type AppType = typeof route;
+export default app;

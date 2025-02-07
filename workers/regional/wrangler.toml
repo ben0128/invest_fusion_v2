@@ -4,26 +4,39 @@ compatibility_date = "2025-01-24"
 
 
 # Service bindings 配置
-
 [[services]]
 binding = "PRICE_SERVICE"  # 這是在程式中使用的名稱
 service = "price-service"  # 這必須與 price-service worker 的 name 一致
 
-# wrangler.toml (wrangler v3.88.0^)
+# wrangler.toml
 [observability.logs]
 enabled = true
 
 
-
-
+# 基礎配置（會被特定環境覆蓋）
+[vars]
+CACHE_TTL = "10"
+MAX_BATCH_SIZE = "50"
+PRICE_SERVICE_URL = "https://price-service.a84012807.workers.dev"
+NODE_ENV = "production"
 
 # 開發環境配置
+[env.development.vars]
+PRICE_SERVICE_URL = "http://localhost:8100"
+NODE_ENV = "development"
+CACHE_TTL = "3"
+MAX_BATCH_SIZE = "10"
+
+
+# 生產環境配置
+[env.production.vars]
+PRICE_SERVICE_URL = "https://price-service.a84012807.workers.dev"
+NODE_ENV = "production"
+CACHE_TTL = "10"
+MAX_BATCH_SIZE = "50"
+
+# 本地開發配置
 [dev]
 port = 8000
 
-[vars]
-CACHE_TTL = "300"
-MAX_BATCH_SIZE = "10"
-
-[env.production]
-vars = { ENVIRONMENT = "production" }
+# 使用 .dev.vars 文件來設置本地開發環境變數

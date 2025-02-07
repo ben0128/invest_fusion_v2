@@ -6,8 +6,8 @@
 	"scripts": {
 		"dev": "bun run --watch apps/web/app/server.ts",
 		"dev:web": "bun run apps/web/app/server.ts",
-		"dev:regional": "wrangler dev workers/regional/src/index.ts",
-		"dev:price": "wrangler dev workers/price-service/src/index.ts",
+		"dev:regional": "wrangler dev workers/regional/src/index.ts --env development",
+		"dev:price": "wrangler dev workers/price-service/src/index.ts --env development",
 		"build:shared": "bun build ./shared/types/index.ts --outdir ./dist/shared",
 		"build:regional": "bun build ./workers/regional/src/index.ts --outdir ./dist/workers/regional/src",
 		"build:price": "bun build ./workers/price-service/src/index.ts --outdir ./dist/workers/price-service/src",
@@ -22,13 +22,14 @@
 	"dependencies": {
 		"@binance/connector": "^3.0.0",
 		"@cloudflare/workers-types": "^4.20231218.0",
+		"@hono/zod-validator": "^0.4.2",
 		"eslint-import-resolver-typescript": "^3.7.0",
 		"hono": "^3.11.7",
 		"next": "14.0.4",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"ws": "^8.15.1",
-		"zod": "^3.22.4"
+		"zod": "^3.23.8"
 	},
 	"devDependencies": {
 		"@types/react": "^18.2.0",
