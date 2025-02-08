@@ -141,25 +141,58 @@
 // export type AppType = typeof route;
 // export default app;
 
-import { Hono } from 'hono';
-import { zValidator } from '@hono/zod-validator';
-import { z } from 'zod';
+// import { Hono } from 'hono';
+// import { zValidator } from '@hono/zod-validator';
+// import { z } from 'zod';
 
-const app = new Hono();
+// const app = new Hono();
 
-// 定義 RPC 風格的路由
-const priceRoute = new Hono()
-  .get('/', zValidator('query', z.object({
-    symbol: z.string(),
-    market: z.enum(['crypto', 'stock'])
-  }), (c) => {
-    // const { symbol, market } = c.req.query();
-    console.log('check 2', c.data)
-    // 處理價格查詢邏輯
-    return c.data;
-  })
-  )
-app.route('/price', priceRoute);
+// // 定義 RPC 風格的路由
+// const priceRoute = new Hono()
+//   .get('/', zValidator('query', z.object({
+//     symbol: z.string(),
+//     market: z.enum(['crypto', 'stock'])
+//   }), (c) => {
+//     // const { symbol, market } = c.req.query();
+//     console.log('check 2', c.data)
+//     // 處理價格查詢邏輯
+//     return c.data;
+//   })
+//   )
+// app.route('/price', priceRoute);
 
-export type AppType = typeof app;
-export default app;
+// export type AppType = typeof app;
+// export default app;
+
+// export default {
+//   async fetch(req, env) {
+//     const url = new URL(req.url);
+    
+//     // 假設 RPC 請求是 /rpc/add?a=1&b=2
+//     if (url.pathname === "/rpc/add") {
+//       const a = parseInt(url.searchParams.get("a") || "0", 10);
+//       const b = parseInt(url.searchParams.get("b") || "0", 10);
+//       const result = a + b;
+      
+//       return new Response(JSON.stringify({ result }), {
+//         headers: { "Content-Type": "application/json" },
+//       });
+//     }
+
+//     return new Response("Not found", { status: 404 });
+//   },
+// };
+
+import { WorkerEntrypoint } from 'cloudflare:workers';
+import { Env } from 'shared/types';
+class PriceWorker extends WorkerEntrypoint {
+	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+		return new Response('Hello from Worker One!');
+	}
+	add(a: number, b: number): number {
+		console.log('add', a, b);
+		return a + b;
+	}
+}
+
+export default PriceWorker;

@@ -167,21 +167,28 @@
 
 // export default app;
 
-import { hc } from 'hono/client';
-import type { AppType } from '../../price-service/src/index';
-import { Hono } from 'hono';
+// import { Hono } from 'hono';
+// import { env } from 'hono/adapter';
 
-const app = new Hono();
+// const app = new Hono();
 
-app.get("/", async (c) => {
-    const client = hc<AppType>('http://localhost:8100');
-	// 調用 RPC 方法
-	const response = await client.price.$get({
-		query: { symbol: 'AAPL', market: 'stock' }
-	});
-	console.log('response', response)
-	// console.log('response', await response.json())
-return c.json(response);
-});
+// async (c, env) => {
+// 	const rpcServer = c.env.PRICE_SERVICE;
+// 	console.log('rpcServer', rpcServer)
+// 	const response = await rpcServer.fetch(new Request('http://localhost:8100/book'));
+// 	console.log('response', response)
+// 	return c.json(response);
+// };
+// export default app;
+import { ExportedHandler } from '@cloudflare/workers-types';
+// import { Env } from 'shared/types';
+import { Env } from './types';
 
-export default app;
+export default {
+	async fetch(_request, env, _ctx): Promise<Response> {
+		console.log('check', env);
+		const res = await env.PRICE_SERVICE.add(1, 2);
+		console.log('res', res);
+		return new Response(String(res));
+	},
+} satisfies ExportedHandler<Env>;

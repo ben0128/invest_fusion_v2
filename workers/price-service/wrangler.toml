@@ -1,6 +1,7 @@
 name = "price-service"
 main = "../../dist/workers/price-service/src/index.js"
 compatibility_date = "2025-01-24"
+compatibility_flags = ["nodejs_compat"]
 
 # 開發環境配置
 [dev]
@@ -11,26 +12,3 @@ port = 8100
 enabled = true
 
 # 基礎配置
-[vars]
-CACHE_TTL = "10"         # 快取時效, 單位:秒
-MAX_BATCH_SIZE = "50"    # 批次處理最大數量
-TWELVE_DATA_API_URL = "https://api.twelvedata.com"
-
-# 測試環境配置
-[env.staging.vars]
-CACHE_TTL = "10"
-ENVIRONMENT = "staging"
-
-# 開發環境配置
-[env.development.vars]
-CACHE_TTL = "3"
-ENVIRONMENT = "development"
-MAX_BATCH_SIZE = "10"
-TWELVE_DATA_API_URL = "https://api.twelvedata.com"
-
-# 生產環境配置
-[env.production.vars]
-CACHE_TTL = "10"
-ENVIRONMENT = "production"
-MAX_BATCH_SIZE = "50"
-TWELVE_DATA_API_URL = "https://api.twelvedata.com"
