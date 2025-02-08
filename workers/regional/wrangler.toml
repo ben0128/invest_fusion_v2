@@ -1,8 +1,6 @@
-name = "regional-worker"
-main = "../../dist/workers/regional/src/index.js"
-compatibility_date = "2025-01-24"
-compatibility_flags = ["nodejs_compat"]
-
+name = "regional"
+main = "./src/index.ts"
+compatibility_date = "2024-04-03"
 
 # Service bindings 配置
 [[services]]

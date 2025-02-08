@@ -1,6 +1,6 @@
 name = "price-service"
-main = "../../dist/workers/price-service/src/index.js"
-compatibility_date = "2025-01-24"
+main = "./src/index.ts"
+compatibility_date = "2024-04-03"
 compatibility_flags = ["nodejs_compat"]
 
 # 開發環境配置
