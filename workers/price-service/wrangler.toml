@@ -15,4 +15,4 @@ enabled = true
 [vars]
 TWELVE_DATA_API_URL = "https://api.twelvedata.com"
 CACHE_TTL = "3"
-MAX_BATCH_SIZE = "25"
+MAX_BATCH_SIZE = "5"

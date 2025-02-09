@@ -9,4 +9,5 @@ export interface Env {
     TWELVE_DATA_API_KEY: string;
     CACHE_TTL: string;
     MAX_BATCH_SIZE: string;
+    logger: Logger;
 }

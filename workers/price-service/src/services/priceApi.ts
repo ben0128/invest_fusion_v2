@@ -5,6 +5,7 @@ import { Edge_Cache_Config } from 'shared/constants';
 import { Logger } from '@shared/utils/logger';
 
 export class PriceApiService {
+	private readonly getPriceUrl = (symbol: string) => `${this.apiUrl}/price?symbol=${symbol}&apikey=${this.apiKey}`;
 	// private priceStore: DurableObjectStorage;
     // private subscribers: Set<string> = new Set(); // 儲存訂閱的 Regional DO ID
 	
@@ -77,7 +78,7 @@ export class PriceApiService {
 			this.logger.info('check url', `${this.apiUrl}/price?symbol=${symbol}&apikey=${this.apiKey}`);
 			// 如果快取中沒有，則從 API 獲取
 			const response = await fetch(
-				`${this.apiUrl}/price?sybol=${symbol}&apikey=${this.apiKey}`,
+				this.getPriceUrl(symbol),
 			);
 			const data: RawPriceData = await response.json();
 			this.logger.info('data', data);
@@ -157,7 +158,7 @@ export class PriceApiService {
 			const batchPromise = (async () => {
 				try {
 					const response = await fetch(
-						`${this.apiUrl}/price?symbol=${symbolsParam}&apikey=${this.apiKey}`,
+						this.getPriceUrl(symbolsParam),
 					);
 					const rawData: RawPriceData = await response.json();
 					this.logger.info('rawData', rawData);
