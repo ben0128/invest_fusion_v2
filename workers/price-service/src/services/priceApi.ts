@@ -75,11 +75,11 @@ export class PriceApiService {
 			console.log('check url', `${this.apiUrl}/price?symbol=${symbol}&apikey=${this.apiKey}`);
 			// 如果快取中沒有，則從 API 獲取
 			const response = await fetch(
-				`${this.apiUrl}/price?symbol=${symbol}&apikey=${this.apiKey}`,
+				`${this.apiUrl}/price?sybol=${symbol}&apikey=${this.apiKey}`,
 			);
 			const data: RawPriceData = await response.json();
 			console.log('data', data);
-			if (!data || data.price === null) {
+			if (!data || data.code || data.price === null) {
 				throw new Error(`Price not found for symbol: ${symbol}`);
 			}
 
@@ -97,8 +97,8 @@ export class PriceApiService {
 				}),
 			);
 
-			const endTime = Date.now();
-			console.debug(`${symbol}: ${data.price}, Time taken: ${endTime - startTime}ms`);
+			console.debug(`${symbol}: ${data.price}, Time taken: ${Date.now() - startTime}ms`);
+
 			return priceData;
 		} catch (error) {
 			console.error('Error fetching price:', error);
@@ -107,124 +107,124 @@ export class PriceApiService {
 	}
 
 	// 批量獲取價格, 一次傳入多個標的時, 會先檢查快取, 如果快取中沒有, 則會進行批次 API 請求將標的分組，每組不超過 maxBatchSize
-	// async getBatchPrices(symbols: string[]): Promise<PriceData[]> {
-	// 	const startTime: number = Date.now();
+	async getBatchPrices(symbols: string[]): Promise<PriceData[]> {
+		const startTime: number = Date.now();
 		
-	// 	// 並行處理所有快取查詢
-	// 	const cacheChecks = symbols.map(async (symbol) => {
-	// 		const cacheKey = Edge_Cache_Config.getCacheKey(symbol);
-	// 		const cachedResponse = await this.cache.match(new Request(cacheKey));
-	// 		if (cachedResponse) {
-	// 			const cachedData: PriceData = await cachedResponse.json();
-	// 			return { symbol, price: cachedData.price, cached: true };
-	// 		}
-	// 		return { symbol, cached: false };
-	// 	});
+		// 並行處理所有快取查詢
+		const cacheChecks = symbols.map(async (symbol) => {
+			const cacheKey = Edge_Cache_Config.getCacheKey(symbol);
+			const cachedResponse = await this.cache.match(new Request(cacheKey));
+			if (cachedResponse) {
+				const cachedData: PriceData = await cachedResponse.json();
+				return { symbol, price: cachedData.price, cached: true };
+			}
+			return { symbol, cached: false };
+		});
 	
-	// 	// 等待所有快取查詢完成
-	// 	const cacheResults = await Promise.all(cacheChecks);
-	// 	// 分離快取命中和未命中的結果
-	// 	const results: PriceData[] = [];
-	// 	const missedSymbols: string[] = [];
+		// 等待所有快取查詢完成
+		const cacheResults = await Promise.all(cacheChecks);
+		// 分離快取命中和未命中的結果
+		const results: PriceData[] = [];
+		const missedSymbols: string[] = [];
 		
-	// 	cacheResults.forEach(result => {
-	// 		if (result.cached) {
-	// 			results.push(<PriceData>{
-	// 				symbol: result.symbol,
-	// 				price: result.price ?? 0,
-	// 				timestamp: Date.now(),
-	// 			});
-	// 		} else {
-	// 			missedSymbols.push(result.symbol);
-	// 		}
-	// 	});
-	// 	console.debug('missedSymbols', missedSymbols);
+		cacheResults.forEach(result => {
+			if (result.cached) {
+				results.push(<PriceData>{
+					symbol: result.symbol,
+					price: result.price ?? 0,
+					timestamp: Date.now(),
+				});
+			} else {
+				missedSymbols.push(result.symbol);
+			}
+		});
+		console.debug('missedSymbols', missedSymbols);
 
-	// 	// 如果所有標的都命中快取，直接返回結果
-	// 	if (missedSymbols.length === 0) {
-	// 		return results;
-	// 	}
+		// 如果所有標的都命中快取，直接返回結果
+		if (missedSymbols.length === 0) {
+			return results;
+		}
 
-	// 	// 如果有未命中快取的標的，進行批次 API 請求將標的分組，每組不超過 maxBatchSize
-	// 	// 並行處理未命中快取的批次請求
-	// 	const batchPromises = [];
-	// 	for (let i = 0; i < missedSymbols.length; i += this.maxBatchSize) {
-	// 		const batch = missedSymbols.slice(i, i + this.maxBatchSize);
-	// 		const symbolsParam = batch.join(',');
-	// 		console.debug('symbolsParam', symbolsParam);
-	// 		const batchPromise = (async () => {
-	// 			try {
-	// 				const response = await fetch(
-	// 					`${this.apiUrl}/price?symbol=${symbolsParam}&apikey=${this.apiKey}`,
-	// 				);
-	// 				const rawData = await response.json();
+		// 如果有未命中快取的標的，進行批次 API 請求將標的分組，每組不超過 maxBatchSize
+		// 並行處理未命中快取的批次請求
+		const batchPromises = [];
+		for (let i = 0; i < missedSymbols.length; i += this.maxBatchSize) {
+			const batch = missedSymbols.slice(i, i + this.maxBatchSize);
+			const symbolsParam = batch.join(',');
+			console.debug('symbolsParam', symbolsParam);
+			const batchPromise = (async () => {
+				try {
+					const response = await fetch(
+						`${this.apiUrl}/price?symbol=${symbolsParam}&apikey=${this.apiKey}`,
+					);
+					const rawData = await response.json();
+					console.log('rawData', rawData);
+					// 如果symbolsParam 是只有一個標的，data 會是 { price: number }，需要修改成 { [symbol]: { price: 240 }}
+					let data: BatchPriceResponse;
 
-	// 				// 如果symbolsParam 是只有一個標的，data 會是 { price: number }，需要修改成 { [symbol]: { price: 240 }}
-	// 				let data: BatchPriceResponse;
+					if ('price' in rawData) {
+						// 單一價格回應
+						data = { [symbolsParam]: { price: (rawData as RawPriceData).price } };
+					} else {
+						// 多重價格回應
+						data = rawData as BatchPriceResponse;
+					}
 
-	// 				if ('price' in rawData) {
-	// 					// 單一價格回應
-	// 					data = { [symbolsParam]: { price: (rawData as RawPriceData).price } };
-	// 				} else {
-	// 					// 多重價格回應
-	// 					data = rawData as BatchPriceResponse;
-	// 				}
+					console.debug('data', data);
+					// 並行處理快取更新
+					const updatePromises = batch.map(async (symbol) => {
+						const price = data[symbol]?.price;
+						if (price === undefined || price === null) {
+							console.warn(`Price not found for symbol: ${symbol}`);
+							return null;
+						}
 
-	// 				console.debug('data', data);
-	// 				// 並行處理快取更新
-	// 				const updatePromises = batch.map(async (symbol) => {
-	// 					const price = data[symbol]?.price;
-	// 					if (price === undefined || price === null) {
-	// 						console.warn(`Price not found for symbol: ${symbol}`);
-	// 						return null;
-	// 					}
+						const priceData: PriceData = {
+							symbol: symbol,
+							price: price ?? 0,
+							timestamp: Date.now(),
+						};
 
-	// 					const priceData: PriceData = {
-	// 						symbol: symbol,
-	// 						price: price ?? 0,
-	// 						timestamp: Date.now(),
-	// 					};
+						// 更新快取
+						const cacheKey: string = Edge_Cache_Config.getCacheKey(symbol);
+						await this.cache.put(
+							new Request(cacheKey),
+							new Response(JSON.stringify(priceData), {
+								headers: {
+									'Content-Type': 'application/json',
+									'Cache-Control': `max-age=${this.cacheTTL}`,
+								},
+							}),
+						);
 
-	// 					// 更新快取
-	// 					const cacheKey: string = Edge_Cache_Config.getCacheKey(symbol);
-	// 					await this.cache.put(
-	// 						new Request(cacheKey),
-	// 						new Response(JSON.stringify(priceData), {
-	// 							headers: {
-	// 								'Content-Type': 'application/json',
-	// 								'Cache-Control': `max-age=${this.cacheTTL}`,
-	// 							},
-	// 						}),
-	// 					);
+						return priceData;
+					});
 
-	// 					return priceData;
-	// 				});
+					const batchResults = await Promise.all(updatePromises);
+					return batchResults.filter((result): result is PriceData => result !== null);
+				} catch (error) {
+					if (error instanceof this.ErrorClass) throw error;
+					throw new this.ErrorClass(
+						`Failed to fetch batch prices for ${symbolsParam}`,
+						500,
+						symbolsParam
+					);
+				}
+			})();
 
-	// 				const batchResults = await Promise.all(updatePromises);
-	// 				return batchResults.filter((result): result is PriceData => result !== null);
-	// 			} catch (error) {
-	// 				if (error instanceof this.ErrorClass) throw error;
-	// 				throw new this.ErrorClass(
-	// 					`Failed to fetch batch prices for ${symbolsParam}`,
-	// 					500,
-	// 					symbolsParam
-	// 				);
-	// 			}
-	// 		})();
+			batchPromises.push(batchPromise);
+		}
 
-	// 		batchPromises.push(batchPromise);
-	// 	}
+		// 等待所有批次請求完成
+		const batchResults = await Promise.all(batchPromises);
+		console.debug('batchResults', batchResults);
+		results.push(...batchResults.flat());
+		console.debug('results', results);
+		const endTime: number = Date.now();
+		console.debug(
+			`Batch request completed in ${endTime - startTime}ms for ${symbols.length} symbols`,
+		);
 
-	// 	// 等待所有批次請求完成
-	// 	const batchResults = await Promise.all(batchPromises);
-	// 	console.debug('batchResults', batchResults);
-	// 	results.push(...batchResults.flat());
-	// 	console.debug('results', results);
-	// 	const endTime: number = Date.now();
-	// 	console.debug(
-	// 		`Batch request completed in ${endTime - startTime}ms for ${symbols.length} symbols`,
-	// 	);
-
-	// 	return results;
-	// }
+		return results;
+	}
 }

@@ -26,4 +26,14 @@ app.get('/getPrice', async (c) => {
     }
 });
 
+app.get('/getBatchPrices', async (c) => {
+    try {
+        const res = await c.env.PRICE_SERVICE.getBatchPrices(['AAPL', 'TSLA']);
+        return c.json({ result: res });
+    } catch (error) {
+        console.error('錯誤:', error);
+        return c.json({ error: '計算失敗' }, 500);
+    }
+});
+
 export default app;

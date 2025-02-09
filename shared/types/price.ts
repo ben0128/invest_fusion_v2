@@ -3,10 +3,16 @@ export interface PriceData {
     symbol: string;
     price: number;
     timestamp?: number;
+    code?: number;
+    status?: string;
+    message?: string;
 }
 
 export type RawPriceData = {
     price: number;
+    code?: number;
+    status?: string;
+    message?: string;
 };
 
 export interface BatchPriceResponse {

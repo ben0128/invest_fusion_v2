@@ -1,9 +1,7 @@
 import { WorkerEntrypoint } from 'cloudflare:workers';
-import { Env, PriceApiError, PriceData } from 'shared/types';
+import { Env, PriceData } from 'shared/types';
 import { z } from 'zod';
 import { PriceApiService } from './services/priceApi';
-
-console.log('check 0')
 
 class PriceService extends WorkerEntrypoint {
     private priceApiService: PriceApiService | null = null;
@@ -15,17 +13,13 @@ class PriceService extends WorkerEntrypoint {
                 parseInt(env.CACHE_TTL),
                 parseInt(env.MAX_BATCH_SIZE),
                 (caches as any).default,
-                // PriceApiError
             );
         }
         return this.priceApiService;
     };
 
 
-	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-        console.log('check PriceService fetch')
-		return new Response('Hello from Price Service!');
-	};
+	async fetch(): Promise<Response> { return new Response('Hello from Price Service!') };
 
 	add(a: number, b: number): number {
 		const schema = z.object({
@@ -49,6 +43,14 @@ class PriceService extends WorkerEntrypoint {
         console.log('symbol', symbol);
         const priceApiService = this.initPriceApiService(env);
         const res: PriceData = await priceApiService.getPrice(symbol);
+        console.log('res', res);
+        return res;
+    };
+
+    async getBatchPrices(symbols: string[]): Promise<PriceData[]> {
+        const env = this.env as Env;
+        const priceApiService = this.initPriceApiService(env);
+        const res: PriceData[] = await priceApiService.getBatchPrices(symbols);
         console.log('res', res);
         return res;
     };
