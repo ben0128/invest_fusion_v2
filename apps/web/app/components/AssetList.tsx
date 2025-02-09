@@ -1,14 +1,15 @@
-import { Asset, formatPrice, PRICE_UPDATE_INTERVAL } from '@invest-fusion/shared';
+// import { Asset, formatPrice, PRICE_UPDATE_INTERVAL } from '@invest-fusion/shared';
 
-export function AssetList({ assets }: { assets: Asset[] }) {
-  return (
-    <div>
-      {assets.map(asset => (
-        <div key={asset.id}>
-          <span>{asset.symbol}</span>
-          <span>{formatPrice(asset.value || 0)}</span>
-        </div>
-      ))}
-    </div>
-  );
-} 
+export function AssetList({ assets }: { assets: any }) {
+  return 
+    // <div>
+    //   {assets.map(asset => (
+    //     <div key={asset.id}>
+    //       <span>{asset.symbol}</span>
+    //       <span>{formatPrice(asset.value || 0)}</span>
+    //     </div>
+    //   ))}
+    // </div>
+  // );
+  ;
+}

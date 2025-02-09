@@ -1,9 +1,11 @@
 
-import { DurableObjectStorage } from '@cloudflare/workers-types';
+// import { DurableObjectStorage } from '@cloudflare/workers-types';
 import { PriceData, RawPriceData, PriceApiError, BatchPriceResponse } from 'shared/types';
 import { Edge_Cache_Config } from 'shared/constants';
+import { Logger } from '@shared/utils/logger';
 
 export class PriceApiService {
+	private readonly getPriceUrl = (symbol: string) => `${this.apiUrl}/price?symbol=${symbol}&apikey=${this.apiKey}`;
 	// private priceStore: DurableObjectStorage;
     // private subscribers: Set<string> = new Set(); // 儲存訂閱的 Regional DO ID
 	
@@ -13,7 +15,8 @@ export class PriceApiService {
 		private readonly cacheTTL: number,
 		private readonly maxBatchSize: number,
 		private readonly cache: Cache,
-		private readonly ErrorClass: typeof PriceApiError,
+		private readonly logger: Logger,
+		// private readonly ErrorClass: typeof PriceApiError,
 		// storage: DurableObjectStorage,
 	) {
 		// this.priceStore = storage;
@@ -55,39 +58,37 @@ export class PriceApiService {
 		const startTime = Date.now();
 		const cacheKey = new Request(Edge_Cache_Config.getCacheKey(symbol));
 		const cache: Cache = this.cache;
+		this.logger.info('cache', cache);
 		try {
-
 			// 加入更詳細的除錯日誌
-			console.log('Checking cache for symbol:', symbol);
-			console.log('Cache key:', Edge_Cache_Config.getCacheKey(symbol));
+			this.logger.info('Checking cache for symbol:', symbol);
+			this.logger.info('Cache key:', Edge_Cache_Config.getCacheKey(symbol));
 
 			const cachedResponse = await cache.match(cacheKey);
-			console.log('Cached response exists:', !!cachedResponse);
+			this.logger.info('Cached response exists:', !!cachedResponse);
 
 			if (cachedResponse) {
 				const cachedData: PriceData = await cachedResponse.json();
 				const endTime = Date.now();
-				console.debug(
+				this.logger.info(
 					`Cache hit for ${symbol}: ${cachedData.price}, ${endTime - startTime}ms`,
 				);
 				return cachedData;
 			}
-
+			this.logger.info('check url', `${this.apiUrl}/price?symbol=${symbol}&apikey=${this.apiKey}`);
 			// 如果快取中沒有，則從 API 獲取
 			const response = await fetch(
-				`${this.apiUrl}/price?symbol=${symbol}&apikey=${this.apiKey}`,
+				this.getPriceUrl(symbol),
 			);
 			const data: RawPriceData = await response.json();
-
-			if (!data || data.price === null) {
-				throw new this.ErrorClass(`Price not found for symbol: ${symbol}`, 404, symbol);
+			this.logger.info('data', data);
+			if (!data || data.code || data.price === null) {
+				throw new Error(`Price not found for symbol: ${symbol}`);
 			}
 
 			const priceData: PriceData = {
 				symbol: symbol,
-
-				price: data.price ?? 0,
-
+				price: Number(data.price) ?? 0,
 				timestamp: Date.now(),
 			};
 
@@ -95,26 +96,23 @@ export class PriceApiService {
 			await this.cache.put(
 				cacheKey,
 				new Response(JSON.stringify(priceData), {
-					headers: {
-						'Content-Type': 'application/json',
-						'Cache-Control': `max-age=${this.cacheTTL}`,
-					},
+					headers: Edge_Cache_Config.getHeaders(),
 				}),
 			);
 
-			const endTime = Date.now();
-			console.debug(`${symbol}: ${data.price}, Time taken: ${endTime - startTime}ms`);
+			this.logger.info(`${symbol}: ${data.price}, Time taken: ${Date.now() - startTime}ms`);
+
 			return priceData;
 		} catch (error) {
-			if (error instanceof this.ErrorClass) throw error;
-			throw new this.ErrorClass(`Failed to fetch price for ${symbol}`, 500, symbol);
+			this.logger.error('Error fetching price:', error);
+			throw error;
 		}
 	}
 
 	// 批量獲取價格, 一次傳入多個標的時, 會先檢查快取, 如果快取中沒有, 則會進行批次 API 請求將標的分組，每組不超過 maxBatchSize
 	async getBatchPrices(symbols: string[]): Promise<PriceData[]> {
 		const startTime: number = Date.now();
-		
+
 		// 並行處理所有快取查詢
 		const cacheChecks = symbols.map(async (symbol) => {
 			const cacheKey = Edge_Cache_Config.getCacheKey(symbol);
@@ -143,7 +141,7 @@ export class PriceApiService {
 				missedSymbols.push(result.symbol);
 			}
 		});
-		console.debug('missedSymbols', missedSymbols);
+		this.logger.info('missedSymbols', missedSymbols);
 
 		// 如果所有標的都命中快取，直接返回結果
 		if (missedSymbols.length === 0) {
@@ -156,14 +154,14 @@ export class PriceApiService {
 		for (let i = 0; i < missedSymbols.length; i += this.maxBatchSize) {
 			const batch = missedSymbols.slice(i, i + this.maxBatchSize);
 			const symbolsParam = batch.join(',');
-			console.debug('symbolsParam', symbolsParam);
+			this.logger.info('symbolsParam', symbolsParam);
 			const batchPromise = (async () => {
 				try {
 					const response = await fetch(
-						`${this.apiUrl}/price?symbol=${symbolsParam}&apikey=${this.apiKey}`,
+						this.getPriceUrl(symbolsParam),
 					);
-					const rawData = await response.json();
-
+					const rawData: RawPriceData = await response.json();
+					this.logger.info('rawData', rawData);
 					// 如果symbolsParam 是只有一個標的，data 會是 { price: number }，需要修改成 { [symbol]: { price: 240 }}
 					let data: BatchPriceResponse;
 
@@ -175,12 +173,12 @@ export class PriceApiService {
 						data = rawData as BatchPriceResponse;
 					}
 
-					console.debug('data', data);
+					this.logger.info('data', data);
 					// 並行處理快取更新
 					const updatePromises = batch.map(async (symbol) => {
 						const price = data[symbol]?.price;
 						if (price === undefined || price === null) {
-							console.warn(`Price not found for symbol: ${symbol}`);
+							this.logger.warn(`Price not found for symbol: ${symbol}`);
 							return null;
 						}
 
@@ -208,8 +206,8 @@ export class PriceApiService {
 					const batchResults = await Promise.all(updatePromises);
 					return batchResults.filter((result): result is PriceData => result !== null);
 				} catch (error) {
-					if (error instanceof this.ErrorClass) throw error;
-					throw new this.ErrorClass(
+					if (error instanceof PriceApiError) throw error;
+					throw new PriceApiError(
 						`Failed to fetch batch prices for ${symbolsParam}`,
 						500,
 						symbolsParam
@@ -222,11 +220,11 @@ export class PriceApiService {
 
 		// 等待所有批次請求完成
 		const batchResults = await Promise.all(batchPromises);
-		console.debug('batchResults', batchResults);
+		this.logger.info('batchResults', batchResults);
 		results.push(...batchResults.flat());
-		console.debug('results', results);
+		this.logger.info('results', results);
 		const endTime: number = Date.now();
-		console.debug(
+		this.logger.info(
 			`Batch request completed in ${endTime - startTime}ms for ${symbols.length} symbols`,
 		);
 

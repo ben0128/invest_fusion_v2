@@ -1,43 +1,18 @@
 name = "price-service"
-
-main = "../../dist/workers/price-service/src/index.js"
-
-compatibility_date = "2025-01-24"
+main = "./src/index.ts"
+compatibility_date = "2024-10-04"
+compatibility_flags = ["nodejs_compat"]
 
 # 開發環境配置
 [dev]
 port = 8100
 
-# wrangler.toml (wrangler v3.88.0^)
+# wrangler.toml
 [observability.logs]
 enabled = true
 
-# 正式環境變數
+# 基礎配置
 [vars]
-CACHE_TTL = "10"         # 快取時效, 單位:秒
-
-MAX_BATCH_SIZE = "50"     # 批次處理最大數量
 TWELVE_DATA_API_URL = "https://api.twelvedata.com"
-TWELVE_DATA_API_KEY = "55a57a940a4945ea8c9724bdf11ff0f8"
-
-# 測試環境變數
-[env.staging]
-name = "price-service-staging"
-vars = { CACHE_TTL = "10" }  # 測試環境快取時效縮短
-
-# 正式環境
-[env.production]
-
-vars = { ENVIRONMENT = "production" }
-
-
-# 資源限制配置
-[limits]
-cpu_ms = 10  # 每請求CPU時間限制
-memory_mb = 128  # 記憶體限制
-
-# 相容性標記
-compatibility_flags = [
-  "nodejs_compat",
-  "durable_object_alarms"
-] 
+CACHE_TTL = "3"
+MAX_BATCH_SIZE = "5"
