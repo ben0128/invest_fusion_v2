@@ -180,15 +180,50 @@
 // 	return c.json(response);
 // };
 // export default app;
-import { ExportedHandler } from '@cloudflare/workers-types';
-// import { Env } from 'shared/types';
+// import { ExportedHandler } from '@cloudflare/workers-types';
+// import { Env } from './types';
+
+// export default {
+// 	async fetch(_request, env, _ctx): Promise<Response> {
+// 		try {
+// 			console.log('check', env);
+// 			const res = await env.PRICE_SERVICE.add('5', 7);
+// 			console.log('res', res);
+// 			return new Response(String(res));
+// 		} catch (error) {
+// 			console.error('錯誤:', error);
+
+// 			return new Response(error, { status: 500 });
+// 		}
+// 	},
+// } satisfies ExportedHandler<Env>;
+
+import { Hono } from 'hono';
+// import { cors } from 'hono/cors';
 import { Env } from './types';
 
-export default {
-	async fetch(_request, env, _ctx): Promise<Response> {
-		console.log('check', env);
-		const res = await env.PRICE_SERVICE.add(1, 2);
-		console.log('res', res);
-		return new Response(String(res));
-	},
-} satisfies ExportedHandler<Env>;
+const app = new Hono<{ Bindings: Env }>();
+// app.use('/*', cors());
+
+// 測試路由
+app.get('/add1', async (c) => {
+    try {
+        const res = await c.env.PRICE_SERVICE.add(5, 7);
+        return c.json({ result: res });
+    } catch (error) {
+        console.error('錯誤:', error);
+        return c.json({ error: '計算失敗' }, 500);
+    }
+});
+
+app.get('/getPrice', async (c) => {
+    try {
+        const res = await c.env.PRICE_SERVICE.getPrice('AAPL');
+        return c.json({ result: res });
+    } catch (error) {
+        console.error('錯誤:', error);
+        return c.json({ error: '計算失敗' }, 500);
+    }
+});
+
+export default app;

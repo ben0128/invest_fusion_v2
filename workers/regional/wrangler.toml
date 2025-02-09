@@ -1,6 +1,7 @@
-name = "regional"
+name = "regional-service"
 main = "./src/index.ts"
-compatibility_date = "2024-04-03"
+compatibility_date = "2024-10-04"
+compatibility_flags = ["nodejs_compat"]
 
 # Service bindings 配置
 [[services]]

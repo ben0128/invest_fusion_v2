@@ -1,6 +1,6 @@
 name = "price-service"
 main = "./src/index.ts"
-compatibility_date = "2024-04-03"
+compatibility_date = "2024-10-04"
 compatibility_flags = ["nodejs_compat"]
 
 # 開發環境配置
@@ -12,3 +12,7 @@ port = 8100
 enabled = true
 
 # 基礎配置
+[vars]
+TWELVE_DATA_API_URL = "https://api.twelvedata.com"
+CACHE_TTL = "3"
+MAX_BATCH_SIZE = "25"
