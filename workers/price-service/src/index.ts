@@ -2,9 +2,12 @@ import { WorkerEntrypoint } from 'cloudflare:workers';
 import { Env, PriceData } from 'shared/types';
 import { z } from 'zod';
 import { PriceApiService } from './services/priceApi';
+import { createLogger } from 'shared/utils/logger';
 
 class PriceService extends WorkerEntrypoint {
     private priceApiService: PriceApiService | null = null;
+    private static logger = createLogger('PriceService');
+
     private initPriceApiService(env: Env) {
         if (!this.priceApiService) {
             this.priceApiService = new PriceApiService(
@@ -13,45 +16,31 @@ class PriceService extends WorkerEntrypoint {
                 parseInt(env.CACHE_TTL),
                 parseInt(env.MAX_BATCH_SIZE),
                 (caches as any).default,
+                PriceService.logger
             );
         }
         return this.priceApiService;
     };
 
 
-	async fetch(): Promise<Response> { return new Response('Hello from Price Service!') };
-
-	add(a: number, b: number): number {
-		const schema = z.object({
-			a: z.number(),
-			b: z.number()
-		});
-
-		const result = schema.safeParse({ a, b });
-		console.log('result', result);
-		if (!result.success) {
-			throw new Error('參數驗證失敗: ' + result.error);
-		}
-
-		console.log('add', a, b);
-		return a + b;
-	};
+	async fetch(): Promise<Response> { 
+        return new Response('Hello from Price Service!') 
+    };
 
     async getPrice(symbol: string): Promise<PriceData> {
+        PriceService.logger.info('getPrice', { symbol });
         const env = this.env as Env;
-        console.log('env', env);
-        console.log('symbol', symbol);
         const priceApiService = this.initPriceApiService(env);
         const res: PriceData = await priceApiService.getPrice(symbol);
-        console.log('res', res);
         return res;
     };
 
     async getBatchPrices(symbols: string[]): Promise<PriceData[]> {
+        PriceService.logger.info('getBatchPrices', { symbols });
         const env = this.env as Env;
         const priceApiService = this.initPriceApiService(env);
         const res: PriceData[] = await priceApiService.getBatchPrices(symbols);
-        console.log('res', res);
+
         return res;
     };
 }
