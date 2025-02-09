@@ -57,7 +57,6 @@ export class PriceApiService {
 		const cache: Cache = this.cache;
 		console.log('cache', cache);
 		try {
-
 			// 加入更詳細的除錯日誌
 			console.log('Checking cache for symbol:', symbol);
 			console.log('Cache key:', Edge_Cache_Config.getCacheKey(symbol));
@@ -73,22 +72,20 @@ export class PriceApiService {
 				);
 				return cachedData;
 			}
-
+			console.log('check url', `${this.apiUrl}/price?symbol=${symbol}&apikey=${this.apiKey}`);
 			// 如果快取中沒有，則從 API 獲取
 			const response = await fetch(
 				`${this.apiUrl}/price?symbol=${symbol}&apikey=${this.apiKey}`,
 			);
 			const data: RawPriceData = await response.json();
-
+			console.log('data', data);
 			if (!data || data.price === null) {
-				// throw new this.ErrorClass(`Price not found for symbol: ${symbol}`, 404, symbol);
+				throw new Error(`Price not found for symbol: ${symbol}`);
 			}
 
 			const priceData: PriceData = {
 				symbol: symbol,
-
-				price: data.price ?? 0,
-
+				price: Number(data.price) ?? 0,
 				timestamp: Date.now(),
 			};
 
@@ -96,10 +93,7 @@ export class PriceApiService {
 			await this.cache.put(
 				cacheKey,
 				new Response(JSON.stringify(priceData), {
-					headers: {
-						'Content-Type': 'application/json',
-						'Cache-Control': `max-age=${this.cacheTTL}`,
-					},
+					headers: Edge_Cache_Config.getHeaders(),
 				}),
 			);
 
@@ -109,8 +103,6 @@ export class PriceApiService {
 		} catch (error) {
 			console.error('Error fetching price:', error);
 			throw error;
-			// if (error instanceof this.ErrorClass) throw error;
-			// throw new this.ErrorClass(`Failed to fetch price for ${symbol}`, 500, symbol);
 		}
 	}
 

@@ -11,7 +11,6 @@ export const CACHE_KEYS = {
 } as const;
 
 export const Edge_Cache_Config = {
-    NAMESPACE: 'prices',
     KEY_PREFIX: 'https://api.invest-fusion.com/prices',
     TTL: 10,
     getCacheKey: (symbol: string) => `${Edge_Cache_Config.KEY_PREFIX}/${symbol.toUpperCase()}`,
