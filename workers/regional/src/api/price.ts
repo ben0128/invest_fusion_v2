@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+
 import { zValidator } from '@hono/zod-validator'
 import { Env } from '../types';
 import { createLogger } from 'shared/utils/logger';
@@ -6,10 +7,12 @@ import { symbolSchema, batchSymbolsSchema } from 'shared/schemas/price.schema';
 import { SinglePriceResponse, BatchPriceResponse } from 'shared/types/api';
 import { AppError } from 'shared/errors/AppError';
 
+
 const logger = createLogger('PriceAPI');
 const price = new Hono<{ Bindings: Env }>();
 
 // GET /prices/:symbol - 獲取單一股票價格
+
 price.get('/:symbol',
     zValidator('param', symbolSchema),
     async (c) => {
@@ -53,5 +56,6 @@ price.post('/batch',
         }
     }
 );
+
 
 export default price; 
