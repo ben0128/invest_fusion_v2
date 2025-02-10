@@ -1,5 +1,4 @@
-// import { DurableObjectStorage } from '@cloudflare/workers-types';
-import { PriceData, RawPriceData, PriceApiError, BatchPriceResponse } from 'shared/types';
+import { PriceData, RawPriceData, BatchPriceResponse } from 'shared/types';
 import { Edge_Cache_Config, API_ROUTES } from 'shared/constants';
 import { Logger } from '@shared/utils/logger';
 import { AppError } from 'shared/errors/AppError'
@@ -100,7 +99,7 @@ export class PriceApiService {
 		await this.cache.put(
 			cacheKey,
 			new Response(JSON.stringify(priceData), {
-				headers: Edge_Cache_Config.getHeaders(),
+				headers: Edge_Cache_Config.getHeaders(this.cacheTTL),
 			}),
 		);
 
@@ -192,7 +191,7 @@ export class PriceApiService {
 						await this.cache.put(
 							cacheKey,
 							new Response(JSON.stringify(priceData), {
-								headers: Edge_Cache_Config.getHeaders(),
+								headers: Edge_Cache_Config.getHeaders(this.cacheTTL),
 							}),
 						);
 
