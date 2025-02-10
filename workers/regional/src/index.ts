@@ -13,11 +13,6 @@ app.onError((e, c) => {
     })
 });
 
-app.onError((e, c) => {
-    return new Response(e?.message, {
-        status: c?.res?.status || 500,
-    })
-});
 
 
 export default app;
