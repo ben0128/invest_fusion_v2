@@ -19,13 +19,13 @@
 		"format": "bunx prettier --write .",
 		"typecheck": "bun tsc --noEmit",
 		"cf-typegen": "cd workers/regional && wrangler types && cd ../price-service && wrangler types && cd ../.. && tsc"
-
 	},
 	"dependencies": {
 		"@binance/connector": "^3.0.0",
-		"hono": "^4.5.1",
 		"@cloudflare/workers-types": "^4.20241004.0",
+		"@hono/zod-validator": "^0.4.2",
 		"eslint-import-resolver-typescript": "^3.7.0",
+		"hono": "^4.5.1",
 		"next": "14.0.4",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",

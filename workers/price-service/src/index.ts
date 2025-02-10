@@ -1,8 +1,8 @@
 import { WorkerEntrypoint } from 'cloudflare:workers';
 import { Env, PriceData } from 'shared/types';
-import { z } from 'zod';
 import { PriceApiService } from './services/priceApi';
 import { createLogger } from 'shared/utils/logger';
+import { symbolSchema } from 'shared/schemas/price.schema';
 
 class PriceService extends WorkerEntrypoint {
     private priceApiService: PriceApiService | null = null;
@@ -29,19 +29,27 @@ class PriceService extends WorkerEntrypoint {
 
     async getPrice(symbol: string): Promise<PriceData> {
         PriceService.logger.info('getPrice', { symbol });
-        const env = this.env as Env;
-        const priceApiService = this.initPriceApiService(env);
-        const res: PriceData = await priceApiService.getPrice(symbol);
-        return res;
+        try {
+            const { symbol: validSymbol } = symbolSchema.parse({ symbol });
+            const env = this.env as Env;
+            const priceApiService = this.initPriceApiService(env);
+            return await priceApiService.getPrice(validSymbol);
+        } catch (error) {
+            PriceService.logger.error('批量獲取價格失敗', { symbol, error });
+            throw error
+        }
     };
 
     async getBatchPrices(symbols: string[]): Promise<PriceData[]> {
         PriceService.logger.info('getBatchPrices', { symbols });
-        const env = this.env as Env;
-        const priceApiService = this.initPriceApiService(env);
-        const res: PriceData[] = await priceApiService.getBatchPrices(symbols);
-
-        return res;
+        try {
+            const env = this.env as Env;
+            const priceApiService = this.initPriceApiService(env);
+            return await priceApiService.getBatchPrices(symbols);
+        } catch (error) {
+            PriceService.logger.error('批量獲取價格失敗', { symbols, error });
+            throw error;
+        }
     };
 }
 

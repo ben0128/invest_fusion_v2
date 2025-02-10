@@ -1,3 +1,5 @@
+import { AppError } from "@shared/errors/AppError";
+
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 interface LogMessage {
@@ -49,8 +51,23 @@ export class Logger {
 		this.log('warn', message, data);
 	}
 
-	error(message: string, data?: any) {
-		this.log('error', message, data);
+	error(message: string, error?: any) {
+		const errorData = error instanceof AppError 
+			? {
+					name: error.name,
+					code: error.code,
+					statusCode: error.statusCode,
+					message: error.message
+				}
+			: error;
+
+		console.error(JSON.stringify({
+			level: 'error',
+			message,
+			error: errorData,
+			timestamp: new Date().toISOString(),
+			service: this.service
+		}));
 	}
 }
 
