@@ -7,5 +7,10 @@ const app = new Hono<{ Bindings: Env }>();
 // app.use('/*', cors());
 
 app.route('/prices', priceApi);
+app.onError((e, c) => {
+    return new Response(e?.message, {
+        status: c?.res?.status || 500,
+    })
+});
 
 export default app;

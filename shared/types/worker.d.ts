@@ -5,4 +5,5 @@ export interface Env {
     CACHE_TTL: string;
     MAX_BATCH_SIZE: string;
     logger: Logger;
+    AppError: AppError;
 }

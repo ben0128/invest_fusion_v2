@@ -29,17 +29,14 @@ class PriceService extends WorkerEntrypoint {
 
     async getPrice(symbol: string): Promise<PriceData> {
         PriceService.logger.info('getPrice', { symbol });
-        // 使用共用的 schema 進行驗證
         try {
             const { symbol: validSymbol } = symbolSchema.parse({ symbol });
             const env = this.env as Env;
             const priceApiService = this.initPriceApiService(env);
-            const res: PriceData = await priceApiService.getPrice(validSymbol);
-            
-            return res;
+            return await priceApiService.getPrice(validSymbol);
         } catch (error) {
-            PriceService.logger.error('無效的股票代號格式', { symbol, error });
-            throw new Error('無效的股票代號格式');
+            PriceService.logger.error('批量獲取價格失敗', { symbol, error });
+            throw error
         }
     };
 
@@ -48,11 +45,10 @@ class PriceService extends WorkerEntrypoint {
         try {
             const env = this.env as Env;
             const priceApiService = this.initPriceApiService(env);
-            const res: PriceData[] = await priceApiService.getBatchPrices(symbols);
-            return res;
+            return await priceApiService.getBatchPrices(symbols);
         } catch (error) {
             PriceService.logger.error('批量獲取價格失敗', { symbols, error });
-            throw new Error('批量獲取價格失敗');
+            throw error;
         }
     };
 }

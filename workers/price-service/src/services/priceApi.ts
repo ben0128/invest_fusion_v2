@@ -2,6 +2,8 @@
 import { PriceData, RawPriceData, PriceApiError, BatchPriceResponse } from 'shared/types';
 import { Edge_Cache_Config, API_ROUTES } from 'shared/constants';
 import { Logger } from '@shared/utils/logger';
+import { AppError } from 'shared/errors/AppError'
+
 
 export class PriceApiService {
 	// private priceStore: DurableObjectStorage;
@@ -56,14 +58,13 @@ export class PriceApiService {
 		const startTime = Date.now();
 		const cacheKey = new Request(Edge_Cache_Config.getCacheKey(symbol));
 		const cache: Cache = this.cache;
-		this.logger.info('cache', cache);
-		try {
+
 			// 加入更詳細的除錯日誌
-			this.logger.info('Checking cache for symbol:', symbol);
-			this.logger.info('Cache key:', Edge_Cache_Config.getCacheKey(symbol));
+			// this.logger.info('Checking cache for symbol:', symbol);
+			// this.logger.info('Cache key:', Edge_Cache_Config.getCacheKey(symbol));
 
 			const cachedResponse = await cache.match(cacheKey);
-			this.logger.info('Cached response exists:', !!cachedResponse);
+			// this.logger.info('Cached response exists:', !!cachedResponse);
 
 			if (cachedResponse) {
 				const cachedData: PriceData = await cachedResponse.json();
@@ -77,15 +78,21 @@ export class PriceApiService {
 			const response = await fetch(
 				API_ROUTES.getPriceUrl(this.apiUrl, symbol, this.apiKey)
 			);
-			const data: RawPriceData = await response.json();
-			this.logger.info('data', data);
-			if (!data || data.code || data.price === null) {
-				throw new Error(`Price not found for symbol: ${symbol}`);
+			const rawData: RawPriceData = await response.json();
+			this.logger.info('rawData', rawData);
+			if (!rawData || rawData.code || rawData.price === null) {
+				if (rawData?.code === 429) {
+					throw AppError.rateLimitExceeded();
+				} else if (rawData?.code === 404) {
+					throw AppError.symbolNotFound();
+				} else {
+					throw AppError.externalApiError();
+				}
 			}
 
 			const priceData: PriceData = {
 				symbol: symbol,
-				price: Number(data.price) ?? 0,
+				price: Number(rawData.price) ?? 0,
 				timestamp: Date.now(),
 			};
 
@@ -97,13 +104,9 @@ export class PriceApiService {
 				}),
 			);
 
-			this.logger.info(`${symbol}: ${data.price}, Time taken: ${Date.now() - startTime}ms`);
+			this.logger.info(`${symbol}: ${rawData.price}, Time taken: ${Date.now() - startTime}ms`);
 
 			return priceData;
-		} catch (error) {
-			this.logger.error('Error fetching price:', error);
-			throw error;
-		}
 	}
 
 	// 批量獲取價格, 一次傳入多個標的時, 會先檢查快取, 如果快取中沒有, 則會進行批次 API 請求將標的分組，每組不超過 maxBatchSize
@@ -159,18 +162,22 @@ export class PriceApiService {
 							API_ROUTES.getPriceUrl(this.apiUrl, symbolsParam, this.apiKey)
 						);
 						const rawData: RawPriceData = await response.json();
-						this.logger.info('rawData', rawData);
+						console.log('rawData', rawData);
 	
-						if (rawData.code === 429) {
-							throw new PriceApiError(
-								'API rate limit exceeded',
-								429,
-								symbolsParam
-							);
-						}
-						// 如果symbolsParam 是只有一個標的，data 會是 { price: number }，需要修改成 { [symbol]: { price: 240 }}
+						// if (!rawData || rawData.code || rawData.price === null) {
+						// 	if (rawData?.code === 429) {
+						// 		throw AppError.rateLimitExceeded();
+						// 	} else if (rawData?.code === 404) {
+						// 		throw AppError.symbolNotFound();
+						// 	} else {
+						// 		throw AppError.externalApiError();
+						// 	}
+						// }
+
+						// 如果symbolsParam 是只有一個標的，rawData 會是 { price: number }，需要修改成 { [symbol]: { price: 240 }}
 						let data: BatchPriceResponse;
 	
+						this.logger.info('rawData', rawData);
 						if ('price' in rawData) {
 							// 單一價格回應
 							data = { [symbolsParam]: { price: (rawData as RawPriceData).price } };
@@ -178,8 +185,6 @@ export class PriceApiService {
 							// 多重價格回應
 							data = rawData as BatchPriceResponse;
 						}
-	
-						this.logger.info('data', data);
 						// 並行處理快取更新
 						const updatePromises = batch.map(async (symbol) => {
 							const price = data[symbol]?.price;

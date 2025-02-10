@@ -3,6 +3,8 @@ import { zValidator } from '@hono/zod-validator'
 import { Env } from '../types';
 import { createLogger } from 'shared/utils/logger';
 import { symbolSchema, batchSymbolsSchema } from 'shared/schemas/price.schema';
+import { SinglePriceResponse, BatchPriceResponse } from 'shared/types/api';
+import { AppError } from 'shared/errors/AppError';
 
 const logger = createLogger('PriceAPI');
 const price = new Hono<{ Bindings: Env }>();
@@ -11,15 +13,19 @@ const price = new Hono<{ Bindings: Env }>();
 price.get('/:symbol',
     zValidator('param', symbolSchema),
     async (c) => {
+        const { symbol } = c.req.valid('param');
+        
         try {
-            // 驗證過的參數可以直接使用
-            const { symbol } = c.req.valid('param');
-            
             const res = await c.env.PRICE_SERVICE.getPrice(symbol);
-            return c.json({ result: res });
+            const response: SinglePriceResponse = {
+                success: true,
+                data: res
+            };
+            return c.json(response);
         } catch (error) {
-            logger.error('錯誤:', error);
-            return c.json({ error: '計算失敗' }, 500);
+            // logger.error('處理請求失敗:', error.message);
+            // throw AppError.priceFetchFailed();
+            throw error;
         }
     }
 );
@@ -28,16 +34,22 @@ price.get('/:symbol',
 price.post('/batch',
     zValidator('json', batchSymbolsSchema),
     async (c) => {
+        const { symbols } = c.req.valid('json');
+        logger.info('批量請求股票:', symbols);
+        
         try {
-            // 驗證過的 body 可以直接使用
-            const { symbols } = c.req.valid('json');
-            logger.info('批量請求股票:', symbols);
-            
             const res = await c.env.PRICE_SERVICE.getBatchPrices(symbols);
-            return c.json({ result: res });
+            const response: BatchPriceResponse = {
+                success: true,
+                data: res
+            };
+            return c.json(response);
         } catch (error) {
-            logger.error('錯誤:', error);
-            return c.json({ error: '計算失敗' }, 500);
+            logger.error('處理批量請求失敗:', error);
+            if (error instanceof AppError) {
+                throw error;
+            }
+            throw AppError.batchPriceFetchFailed();
         }
     }
 );
