@@ -110,7 +110,8 @@ export class PriceApiService {
 
 	// 批量獲取價格, 一次傳入多個標的時, 會先檢查快取, 如果快取中沒有, 則會進行批次 API 請求將標的分組，每組不超過 maxBatchSize
 	async getBatchPrices(symbols: string[]): Promise<PriceData[]> {
-		const startTime: number = Date.now();
+		try {
+			const startTime: number = Date.now();
 
 		// 並行處理所有快取查詢
 		const cacheChecks = symbols.map(async (symbol) => {
