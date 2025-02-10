@@ -1,13 +1,12 @@
 import { PriceData, RawPriceData, BatchPriceResponse } from 'shared/types';
 import { Edge_Cache_Config, API_ROUTES } from 'shared/constants';
 import { Logger } from '@shared/utils/logger';
-import { AppError } from 'shared/errors/AppError'
-
+import { AppError } from 'shared/errors/AppError';
 
 export class PriceApiService {
 	// private priceStore: DurableObjectStorage;
-    // private subscribers: Set<string> = new Set(); // 儲存訂閱的 Regional DO ID
-	
+	// private subscribers: Set<string> = new Set(); // 儲存訂閱的 Regional DO ID
+
 	constructor(
 		private readonly apiUrl: string,
 		private readonly apiKey: string,
@@ -20,7 +19,7 @@ export class PriceApiService {
 	) {
 		// this.priceStore = storage;
 	}
-	
+
 	// 新增訂閱管理方法
 	// async addSubscriber(regionalDoId: string) {
 	// 	this.subscribers.add(regionalDoId);
@@ -37,13 +36,13 @@ export class PriceApiService {
 	// private async notifyPriceChange(priceData: PriceData) {
 	// 	// 取得所有訂閱者
 	// 	const subscribers = await this.priceStore.get('subscribers') as string[];
-		
+
 	// 	// 向所有訂閱的 Regional DO 推送更新
 	// 	const notifications = subscribers.map(async (regionalDoId) => {
 	// 		const regionalDoStub = await this.env.REGIONAL_DO.get(
 	// 			this.env.REGIONAL_DO.idFromString(regionalDoId)
 	// 		);
-			
+
 	// 		await regionalDoStub.fetch('http://internal/price-update', {
 	// 			method: 'POST',
 	// 			body: JSON.stringify(priceData)
@@ -74,9 +73,7 @@ export class PriceApiService {
 			return cachedData;
 		}
 		// 如果快取中沒有，則從 API 獲取
-		const response = await fetch(
-			API_ROUTES.getPriceUrl(this.apiUrl, symbol, this.apiKey)
-		);
+		const response = await fetch(API_ROUTES.getPriceUrl(this.apiUrl, symbol, this.apiKey));
 		const rawData: RawPriceData = await response.json();
 		this.logger.info('rawData', rawData);
 		if (!rawData || rawData.code || rawData.price === null) {
@@ -122,14 +119,14 @@ export class PriceApiService {
 			}
 			return { symbol, cached: false };
 		});
-	
+
 		// 等待所有快取查詢完成cacheKey
 		const cacheResults = await Promise.all(cacheChecks);
 		// 分離快取命中和未命中的結果
 		const results: PriceData[] = [];
 		const missedSymbols: string[] = [];
-		
-		cacheResults.forEach(result => {
+
+		cacheResults.forEach((result) => {
 			if (result.cached) {
 				results.push(<PriceData>{
 					symbol: result.symbol,
@@ -157,7 +154,7 @@ export class PriceApiService {
 			const batchPromise = (async () => {
 				try {
 					const response = await fetch(
-						API_ROUTES.getPriceUrl(this.apiUrl, symbolsParam, this.apiKey)
+						API_ROUTES.getPriceUrl(this.apiUrl, symbolsParam, this.apiKey),
 					);
 					const rawData: RawPriceData = await response.json();
 

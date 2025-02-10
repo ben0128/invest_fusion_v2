@@ -4,8 +4,7 @@
 	"type": "module",
 	"private": true,
 	"scripts": {
-		"dev": "bun run --watch apps/web/app/server.ts",
-		"dev:web": "bun run apps/web/app/server.ts",
+		"dev:web": "bun run --watch apps/web/app/server.ts",
 		"dev:regional": "wrangler dev workers/regional/src/index.ts ",
 		"dev:price": "wrangler dev workers/price-service/src/index.ts ",
 		"publish:price": "cd workers/price-service && wrangler publish",
@@ -14,8 +13,9 @@
 		"dry:all": "bun run dry:price && bun run dry:regional",
 		"dry:price": "cd workers/price-service && wrangler deploy --dry-run",
 		"dry:regional": "cd workers/regional && wrangler deploy --dry-run",
-		"lint": "bunx eslint . --ext .ts,.tsx,.js,.jsx --fix",
-		"format": "bunx prettier --write .",
+		"lint": "bunx eslint . --ext .ts,.js,.jsx --fix --cache",
+		"format": "bunx prettier --write \"**/*.{ts,js,jsx,json,css}\"",
+		"check": "bun run lint && bun run format",
 		"typecheck": "bun tsc --noEmit",
 		"cf-typegen": "cd workers/regional && wrangler types && cd ../price-service && wrangler types && cd ../.. && tsc"
 	},
