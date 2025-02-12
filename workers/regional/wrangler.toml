@@ -20,3 +20,6 @@ enabled = true
 port = 8000
 
 # 使用 .dev.vars 文件來設置本地開發環境變數
+[vars]
+CACHE_TTL = "10"
+MAX_BATCH_SIZE = "5"

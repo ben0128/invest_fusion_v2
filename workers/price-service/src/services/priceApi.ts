@@ -64,7 +64,7 @@ export class PriceApiService {
 		const cachedResponse = await cache.match(cacheKey);
 		// this.logger.info('Cached response exists:', !!cachedResponse);
 
-		if (cachedResponse) {
+		if (cachedResponse && cachedResponse.status === 200) {
 			const cachedData: PriceData = await cachedResponse.json();
 			const endTime = Date.now();
 			this.logger.info(
@@ -113,7 +113,7 @@ export class PriceApiService {
 		const cacheChecks = symbols.map(async (symbol) => {
 			const cacheKey = new Request(Edge_Cache_Config.getCacheKey(symbol));
 			const cachedResponse = await this.cache.match(cacheKey);
-			if (cachedResponse) {
+			if (cachedResponse && cachedResponse.status === 200) {
 				const cachedData: PriceData = await cachedResponse.json();
 				return { symbol, price: cachedData.price, cached: true };
 			}
