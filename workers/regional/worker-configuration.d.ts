@@ -3,3 +3,11 @@
 interface Env {
 	PRICE_SERVICE: Fetcher;
 }
+
+declare global {
+	interface CacheStorage {
+		default: Cache;
+	}
+}
+
+export {};
