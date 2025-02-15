@@ -21,37 +21,37 @@ describe('PriceApiService', () => {
 
 	describe('getPrice', () => {
 		it('應該從快取中返回價格資料', async () => {
-            const cachedData = mockPriceData.singleSymbol.processed;
-            
-            mockCache.match.mockResolvedValueOnce(
-                new Response(JSON.stringify(cachedData), { 
-                    status: 200,
-                    headers: new Headers({ 'Content-Type': 'application/json' })
-                })
-            );
-            const result = await priceApiService.getPrice(TEST_SYMBOL);
+			const cachedData = mockPriceData.singleSymbol.processed;
 
-            // // 方法1：印出所有呼叫記錄
-            // console.log('All calls:', mockCache.match.mock.calls);
-            
-            // // 方法2：印出第一次呼叫的參數
-            // console.log('First call argument:', mockCache.match.mock.calls[0]?.[0]);
-            
-            // // 方法3：印出所有呼叫的參數
-            // console.log('All call arguments:', mockCache.match.mock.calls.map(call => call[0]));
-            
-            // // 方法4：印出呼叫次數
-            // console.log('Number of calls:', mockCache.match.mock.calls.length);
-            const actualRequest = mockCache.match.mock.calls[0][0] as Request;
-            expect(actualRequest).toMatchObject({
-                method: 'GET',
-                url: 'https://api.invest-fusion.com/prices/AAPL'
-            });
-            expect(mockCache.match).toHaveBeenCalledTimes(1);
-            
-            expect(result).toEqual(cachedData);
-            expect(mockFetch).not.toHaveBeenCalled();
-        });
+			mockCache.match.mockResolvedValueOnce(
+				new Response(JSON.stringify(cachedData), {
+					status: 200,
+					headers: new Headers({ 'Content-Type': 'application/json' }),
+				}),
+			);
+			const result = await priceApiService.getPrice(TEST_SYMBOL);
+
+			// // 方法1：印出所有呼叫記錄
+			// console.log('All calls:', mockCache.match.mock.calls);
+
+			// // 方法2：印出第一次呼叫的參數
+			// console.log('First call argument:', mockCache.match.mock.calls[0]?.[0]);
+
+			// // 方法3：印出所有呼叫的參數
+			// console.log('All call arguments:', mockCache.match.mock.calls.map(call => call[0]));
+
+			// // 方法4：印出呼叫次數
+			// console.log('Number of calls:', mockCache.match.mock.calls.length);
+			const actualRequest = mockCache.match.mock.calls[0][0] as Request;
+			expect(actualRequest).toMatchObject({
+				method: 'GET',
+				url: 'https://api.invest-fusion.com/prices/AAPL',
+			});
+			expect(mockCache.match).toHaveBeenCalledTimes(1);
+
+			expect(result).toEqual(cachedData);
+			expect(mockFetch).not.toHaveBeenCalled();
+		});
 
 		it('快取未命中時應該從 API 獲取價格', async () => {
 			mockCache.match.mockResolvedValueOnce(null);
@@ -102,7 +102,11 @@ describe('PriceApiService', () => {
 					new Response(
 						JSON.stringify({
 							symbol,
-							price: Number(mockPriceData.batchSymbols.raw[symbol as keyof typeof mockPriceData.batchSymbols.raw].price),
+							price: Number(
+								mockPriceData.batchSymbols.raw[
+									symbol as keyof typeof mockPriceData.batchSymbols.raw
+								].price,
+							),
 							timestamp: Date.now(),
 						}),
 						{ status: 200 },
