@@ -1,13 +1,18 @@
 import { WorkerEntrypoint } from 'cloudflare:workers';
 import { PriceData } from '@shared/types';
+import { DurableObjectNamespace, Response, Request } from '@cloudflare/workers-types';
+
 export interface PriceService extends WorkerEntrypoint {
-	add(a: number, b: number): number;
-	getPrice(symbol: string): Promise<PriceData>;
+	getSinglePrice(symbol: string): Promise<PriceData>;
 	getBatchPrices(symbols: string[]): Promise<PriceData[]>;
 	// ... existing code ...
 }
 
 export interface Env {
-	PRICE_SERVICE: Service<PriceService>;
+	REGIONAL_DO: DurableObjectNamespace;
+	PRICE_SERVICE: any;
 	CACHE_TTL: string;
+	Response: Response;
+	Request: Request;
+	// ... 其他環境變數
 }

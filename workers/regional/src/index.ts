@@ -1,16 +1,30 @@
-import { Hono } from 'hono';
+// import { Hono } from 'hono';
 // import { cors } from 'hono/cors';
 import { Env } from './types';
-import priceApi from './api/regional-price';
+import { RegionalDO } from './durable-object';
 
-const app = new Hono<{ Bindings: Env }>();
-// app.use('/*', cors());
+// 需要導出 RegionalDO
+export { RegionalDO };
 
-app.route('/prices', priceApi);
-app.onError((e, c) => {
-	return new Response(e?.message, {
-		status: c?.res?.status || 500,
-	});
-});
+export default {
+	/**
+	 * This is the standard fetch handler for a Cloudflare Worker
+	 *
+	 * @param request - The request submitted to the Worker from the client
+	 * @param env - The interface to reference bindings declared in wrangler.jsonc
+	 * @param ctx - The execution context of the Worker
+	 * @returns The response to be sent back to the client
+	 */
+	async fetch(request, env, ctx): Promise<Response> {
+		// We will create a `DurableObjectId` using the pathname from the Worker request
+		// This id refers to a unique instance of our 'MyDurableObject' class above
 
-export default app;
+		// 根據 request.cf.continent 決定要使用的 Durable Object, 先分兩種就好
+		const DoLocation = (request?.cf?.continent === 'AS') ? 'AS' : 'Other';
+		const id: DurableObjectId = env.REGIONAL_DO.idFromName(DoLocation);
+		// This stub creates a communication channel with the Durable Object instance
+		// The Durable Object constructor will be invoked upon the first call for a given id
+		const stub = env.REGIONAL_DO.get(id);
+		return await stub.fetch(request);
+	},
+} satisfies ExportedHandler<Env>;

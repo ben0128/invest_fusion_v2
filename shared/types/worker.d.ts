@@ -6,4 +6,5 @@ export interface Env {
 	MAX_BATCH_SIZE: string;
 	logger: Logger;
 	AppError: AppError;
+	PRICE_COORDINATOR: DurableObjectNamespace<PriceCoordinator>;
 }

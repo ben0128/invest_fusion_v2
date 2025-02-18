@@ -26,13 +26,13 @@ class PriceService extends WorkerEntrypoint {
 		return new Response('Hello from Price Service!');
 	}
 
-	async getPrice(symbol: string): Promise<PriceData> {
-		PriceService.logger.info('getPrice', { symbol });
+	async getSinglePrice(symbol: string): Promise<PriceData> {
+		PriceService.logger.info('getSinglePrice', { symbol });
 		try {
 			const { symbol: validSymbol } = symbolSchema.parse({ symbol });
 			const env = this.env as Env;
 			const priceApiService = this.initPriceApiService(env);
-			return await priceApiService.getPrice(validSymbol);
+			return await priceApiService.getSinglePrice(validSymbol);
 		} catch (error) {
 			PriceService.logger.error('批量獲取價格失敗', { symbol, error });
 			throw error;

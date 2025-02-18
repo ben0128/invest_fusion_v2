@@ -2,6 +2,7 @@
 
 interface Env {
 	PRICE_SERVICE: Fetcher;
+	REGIONAL_DO: DurableObjectNamespace<import("./src/index").RegionalDO>;
 }
 
 declare global {

@@ -19,7 +19,7 @@ describe('PriceApiService', () => {
 		vi.clearAllMocks();
 	});
 
-	describe('getPrice', () => {
+	describe('getSinglePrice', () => {
 		it('應該從快取中返回價格資料', async () => {
 			const cachedData = mockPriceData.singleSymbol.processed;
 
@@ -29,7 +29,7 @@ describe('PriceApiService', () => {
 					headers: new Headers({ 'Content-Type': 'application/json' }),
 				}),
 			);
-			const result = await priceApiService.getPrice(TEST_SYMBOL);
+			const result = await priceApiService.getSinglePrice(TEST_SYMBOL);
 
 			// // 方法1：印出所有呼叫記錄
 			// console.log('All calls:', mockCache.match.mock.calls);
@@ -59,7 +59,7 @@ describe('PriceApiService', () => {
 				new Response(JSON.stringify(mockPriceData.singleSymbol.raw)),
 			);
 
-			const result = await priceApiService.getPrice(TEST_SYMBOL);
+			const result = await priceApiService.getSinglePrice(TEST_SYMBOL);
 
 			expect(mockFetch).toHaveBeenCalled();
 			expect(result).toEqual({
@@ -76,7 +76,7 @@ describe('PriceApiService', () => {
 				new Response(JSON.stringify(mockErrorResponses.rateLimitExceeded)),
 			);
 
-			await expect(priceApiService.getPrice(TEST_SYMBOL)).rejects.toThrow(
+			await expect(priceApiService.getSinglePrice(TEST_SYMBOL)).rejects.toThrow(
 				AppError.rateLimitExceeded(),
 			);
 		});
@@ -87,7 +87,7 @@ describe('PriceApiService', () => {
 				new Response(JSON.stringify(mockErrorResponses.symbolNotFound)),
 			);
 
-			await expect(priceApiService.getPrice(TEST_SYMBOL)).rejects.toThrow(
+			await expect(priceApiService.getSinglePrice(TEST_SYMBOL)).rejects.toThrow(
 				AppError.symbolNotFound(),
 			);
 		});

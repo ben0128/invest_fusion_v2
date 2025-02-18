@@ -52,7 +52,7 @@ export class PriceApiService {
 	// 	await Promise.all(notifications);
 	// }
 
-	async getPrice(symbol: string): Promise<PriceData> {
+	async getSinglePrice(symbol: string): Promise<PriceData> {
 		const startTime = Date.now();
 		const cacheKey = new Request(Edge_Cache_Config.getCacheKey(symbol));
 		const cache: Cache = this.cache;
