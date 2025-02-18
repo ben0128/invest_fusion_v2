@@ -4,9 +4,6 @@ import { Logger } from '@shared/utils/logger';
 import { AppError } from 'shared/errors/AppError';
 
 export class PriceApiService {
-	// private priceStore: DurableObjectStorage;
-	// private subscribers: Set<string> = new Set(); // 儲存訂閱的 Regional DO ID
-
 	constructor(
 		private readonly apiUrl: string,
 		private readonly apiKey: string,
@@ -14,43 +11,7 @@ export class PriceApiService {
 		private readonly maxBatchSize: number,
 		private readonly cache: Cache,
 		private readonly logger: Logger,
-		// private readonly ErrorClass: typeof PriceApiError,
-		// storage: DurableObjectStorage,
-	) {
-		// this.priceStore = storage;
-	}
-
-	// 新增訂閱管理方法
-	// async addSubscriber(regionalDoId: string) {
-	// 	this.subscribers.add(regionalDoId);
-	// 	// 將訂閱者資訊持久化儲存
-	// 	await this.priceStore.put('subscribers', Array.from(this.subscribers));
-	// }
-
-	// async removeSubscriber(regionalDoId: string) {
-	// 	this.subscribers.delete(regionalDoId);
-	// 	await this.priceStore.put('subscribers', Array.from(this.subscribers));
-	// }
-
-	// 修改現有的價格更新邏輯，加入推送機制
-	// private async notifyPriceChange(priceData: PriceData) {
-	// 	// 取得所有訂閱者
-	// 	const subscribers = await this.priceStore.get('subscribers') as string[];
-
-	// 	// 向所有訂閱的 Regional DO 推送更新
-	// 	const notifications = subscribers.map(async (regionalDoId) => {
-	// 		const regionalDoStub = await this.env.REGIONAL_DO.get(
-	// 			this.env.REGIONAL_DO.idFromString(regionalDoId)
-	// 		);
-
-	// 		await regionalDoStub.fetch('http://internal/price-update', {
-	// 			method: 'POST',
-	// 			body: JSON.stringify(priceData)
-	// 		});
-	// 	});
-
-	// 	await Promise.all(notifications);
-	// }
+	) {}
 
 	async getSinglePrice(symbol: string): Promise<PriceData> {
 		const startTime = Date.now();

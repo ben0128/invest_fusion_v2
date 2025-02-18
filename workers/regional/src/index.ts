@@ -2,7 +2,7 @@
 // import { cors } from 'hono/cors';
 import { Env } from './types';
 import { RegionalDO } from './durable-object';
-
+import { Response, ExportedHandler, Request, CfProperties } from '@cloudflare/workers-types';
 // 需要導出 RegionalDO
 export { RegionalDO };
 
@@ -15,7 +15,7 @@ export default {
 	 * @param ctx - The execution context of the Worker
 	 * @returns The response to be sent back to the client
 	 */
-	async fetch(request, env, ctx): Promise<Response> {
+	async fetch(request: Request, env: Env, _: ExecutionContext): Promise<Response> {
 		// We will create a `DurableObjectId` using the pathname from the Worker request
 		// This id refers to a unique instance of our 'MyDurableObject' class above
 
@@ -25,6 +25,8 @@ export default {
 		// This stub creates a communication channel with the Durable Object instance
 		// The Durable Object constructor will be invoked upon the first call for a given id
 		const stub = env.REGIONAL_DO.get(id);
-		return await stub.fetch(request);
+
+		const response: Response = await stub.fetch(request);
+		return response;
 	},
-} satisfies ExportedHandler<Env>;
+} satisfies ExportedHandler<Env, Request<unknown, CfProperties<unknown>>>;

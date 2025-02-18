@@ -1,7 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
 import { Env, PriceService } from '../types';
 import { priceFunctions } from '../api/regional-price';
-import { PriceData } from "@shared/types";
 
 export class RegionalDO extends DurableObject<Env> {
     private priceService: PriceService;
@@ -22,7 +21,6 @@ export class RegionalDO extends DurableObject<Env> {
 
 		switch (mainRoute) {
 			case 'prices':
-				console.log("handlePrices", request);
 				return await this.handlePrices(request, params);
 			// case 'assets':
 			// 	console.log("handleAssets", request);
