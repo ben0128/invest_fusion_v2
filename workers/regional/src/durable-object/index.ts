@@ -20,8 +20,12 @@ export class RegionalDO extends DurableObject<Env> {
 		const params = pathSegments.slice(1);
 
 		switch (mainRoute) {
-			case 'prices':
-				return await this.handlePrices(request, params);
+			case 'stocks':
+				return await this.handleStocks(request, params);
+			case 'crypto':
+				return await this.handleCrypto(request, params);
+			case 'batch':
+				return await this.handleBatch(request, params);
 			// case 'assets':
 			// 	console.log("handleAssets", request);
 			// 	return await this.handleAssets(request, params);
@@ -34,7 +38,7 @@ export class RegionalDO extends DurableObject<Env> {
 	}
 
 	// 處理價格相關邏輯
-	private async handlePrices(request: Request, params: string[]): Promise<Response> {
+	private async handleStocks(request: Request, params: string[]): Promise<Response> {
 		try {
             // 根據請求方法分流處理
             switch (request.method) {
@@ -68,6 +72,15 @@ export class RegionalDO extends DurableObject<Env> {
             });
 		}
 	}
+
+	private async handleCrypto(request: Request, params: string[]): Promise<Response> {
+		return new Response('Crypto Service Response');
+	}
+
+	private async handleBatch(request: Request, params: string[]): Promise<Response> {
+		return new Response('Batch Service Response');
+	}
+
 	// 處理資產相關邏輯
 	// private async handleAssets(request: Request, params: string[]): Promise<Response> {
 	// 	// 資產服務邏輯
