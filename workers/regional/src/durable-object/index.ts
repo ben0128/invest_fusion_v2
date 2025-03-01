@@ -48,19 +48,19 @@ export class RegionalDO extends DurableObject<Env> {
                         headers: { 'Content-Type': 'application/json' }
                     });
                 }
-                case 'POST': {
-                    if (params[0] === 'batch') {
-                        const { symbols } = await request.json() as { symbols: string[] };
-                        if (!Array.isArray(symbols) || symbols.length === 0) {
-                            return new Response('Invalid payload format', { status: 400 });
-                        }
-                        const result = await priceFunctions.getBatchPrices(this.priceService, symbols);
-                        return new Response(JSON.stringify(result), {
-                            headers: { 'Content-Type': 'application/json' }
-                        });
-                    }
-                    return new Response('Invalid endpoint', { status: 404 });
-                }
+                // case 'POST': {
+                //     if (params[0] === 'batch') {
+                //         const { symbols } = await request.json() as { symbols: string[] };
+                //         if (!Array.isArray(symbols) || symbols.length === 0) {
+                //             return new Response('Invalid payload format', { status: 400 });
+                //         }
+                //         const result = await priceFunctions.getBatchPrices(this.priceService, symbols);
+                //         return new Response(JSON.stringify(result), {
+                //             headers: { 'Content-Type': 'application/json' }
+                //         });
+                //     }
+                //     return new Response('Invalid endpoint', { status: 404 });
+                // }
                 default:
                     return new Response('Method not allowed', { status: 405 });
             }
@@ -77,8 +77,16 @@ export class RegionalDO extends DurableObject<Env> {
 		return new Response('Crypto Service Response');
 	}
 
-	private async handleBatch(request: Request, params: string[]): Promise<Response> {
-		return new Response('Batch Service Response');
+	private async handleBatch(request: Request): Promise<Response> {
+		const { symbols } = await request.json() as { symbols: string[] };
+		console.log("handleBatch", symbols);
+		if (!Array.isArray(symbols) || symbols.length === 0) {
+			return new Response('Invalid payload format, symbols is not an array or empty', { status: 400 });
+		}
+		const result = await priceFunctions.getBatchPrices(this.priceService, symbols);
+		return new Response(JSON.stringify(result), {
+			headers: { 'Content-Type': 'application/json' }
+		});
 	}
 
 	// 處理資產相關邏輯

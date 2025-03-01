@@ -21,18 +21,25 @@
 		"test": "vitest",
 		"test:workers": "vitest workers",
 		"test:coverage": "vitest run --coverage",
-		"test:price": "vitest workers/price-service"
+		"test:price": "vitest workers/price-service",
+		"supabase:start": "cd supabase && supabase start",
+		"supabase:stop": "cd supabase && supabase stop",
+		"supabase:status": "cd supabase && supabase status",
+		"supabase:db:push": "cd supabase && supabase db push",
+		"supabase:db:migrate": "cd supabase && supabase db push --db-url postgres://postgres:postgres@localhost:54322/postgres"
 	},
 	"dependencies": {
 		"@binance/connector": "^3.0.0",
 		"@cloudflare/workers-types": "^4.20241004.0",
-		"@hono/zod-validator": "^0.4.2",
+		"@hono/zod-validator": "^0.4.3",
+		"@supabase/supabase-js": "^2.48.1",
 		"eslint-import-resolver-typescript": "^3.7.0",
-		"hono": "^4.5.1",
+		"hono": "^4.7.2",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"ws": "^8.15.1",
-		"zod": "^3.23.8"
+		"yahoo-finance2": "^2.13.3",
+		"zod": "^3.24.2"
 	},
 	"devDependencies": {
 		"@types/react": "^18.2.0",
